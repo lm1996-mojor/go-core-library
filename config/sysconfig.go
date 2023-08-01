@@ -1,9 +1,9 @@
 package config
 
 import (
-	_const "mojor/go-core-library/const"
-	"mojor/go-core-library/global"
-	"mojor/go-core-library/log"
+	_const "github.com/lm1996-mojor/go-core-library/const"
+	"github.com/lm1996-mojor/go-core-library/global"
+	"github.com/lm1996-mojor/go-core-library/log"
 
 	"github.com/kataras/iris/v12"
 	"github.com/spf13/viper"

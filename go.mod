@@ -1,4 +1,4 @@
-module mojor/go-core-library
+module github.com/lm1996-mojor/go-core-library
 
 go 1.19
 

@@ -4,7 +4,7 @@ import (
 	"os"
 	"runtime"
 
-	clog "mojor/go-core-library/log"
+	clog "github.com/lm1996-mojor/go-core-library/log"
 )
 
 //var Asset embed.FS

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strconv"
 
-	_const "mojor/go-core-library/const"
-	dbLib "mojor/go-core-library/databases"
-	"mojor/go-core-library/log"
-	"mojor/go-core-library/store"
+	_const "github.com/lm1996-mojor/go-core-library/const"
+	dbLib "github.com/lm1996-mojor/go-core-library/databases"
+	"github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/store"
 
 	"gorm.io/gorm"
 )

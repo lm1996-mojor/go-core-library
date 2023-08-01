@@ -3,10 +3,10 @@ package redis
 import (
 	"strings"
 
-	"mojor/go-core-library/config"
-	"mojor/go-core-library/global"
-	"mojor/go-core-library/log"
-	"mojor/go-core-library/utils"
+	"github.com/lm1996-mojor/go-core-library/config"
+	"github.com/lm1996-mojor/go-core-library/global"
+	"github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/utils"
 
 	"github.com/go-redis/redis"
 	"github.com/kataras/iris/v12"

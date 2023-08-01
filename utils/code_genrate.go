@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"mojor/go-core-library/utils/repo"
+	"github.com/lm1996-mojor/go-core-library/utils/repo"
 
 	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"

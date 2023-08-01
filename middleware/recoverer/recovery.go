@@ -1,10 +1,10 @@
 package recoverer
 
 import (
-	"mojor/go-core-library/databases"
-	"mojor/go-core-library/log"
-	"mojor/go-core-library/rest"
-	"mojor/go-core-library/store"
+	"github.com/lm1996-mojor/go-core-library/databases"
+	"github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/rest"
+	"github.com/lm1996-mojor/go-core-library/store"
 
 	"github.com/kataras/iris/v12"
 )

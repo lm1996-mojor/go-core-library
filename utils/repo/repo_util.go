@@ -3,7 +3,7 @@ package repo
 import (
 	"reflect"
 
-	"mojor/go-core-library/exception"
+	"github.com/lm1996-mojor/go-core-library/exception"
 
 	"gorm.io/gorm"
 )

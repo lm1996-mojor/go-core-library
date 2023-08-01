@@ -3,7 +3,7 @@ package exception
 import (
 	"fmt"
 
-	"mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/log"
 
 	"github.com/pkg/errors"
 )

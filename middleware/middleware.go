@@ -4,15 +4,15 @@ import (
 	"errors"
 	"sort"
 
-	"mojor/go-core-library/config"
-	"mojor/go-core-library/global"
-	clog "mojor/go-core-library/log"
-	"mojor/go-core-library/middleware/recoverer"
-	"mojor/go-core-library/middleware/security/token"
+	"github.com/lm1996-mojor/go-core-library/config"
+	"github.com/lm1996-mojor/go-core-library/global"
+	clog "github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/middleware/recoverer"
+	"github.com/lm1996-mojor/go-core-library/middleware/security/token"
 
 	"github.com/kataras/iris/v12"
 
-	cors "mojor/go-core-library/middleware/cors_handler"
+	cors "github.com/lm1996-mojor/go-core-library/middleware/cors_handler"
 
 	"github.com/kataras/iris/v12/context"
 )

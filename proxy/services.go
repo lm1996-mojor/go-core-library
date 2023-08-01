@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	clog "mojor/go-core-library/log"
-	"mojor/go-core-library/rest"
+	clog "github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/rest"
 )
 
 const (

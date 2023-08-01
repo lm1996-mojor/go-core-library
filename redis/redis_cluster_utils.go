@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/log"
 
 	"github.com/go-redis/redis"
 )

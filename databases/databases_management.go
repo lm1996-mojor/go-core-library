@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"mojor/go-core-library/config"
-	_const "mojor/go-core-library/const"
-	"mojor/go-core-library/global"
-	clog "mojor/go-core-library/log"
-	"mojor/go-core-library/store"
-	"mojor/go-core-library/utils/cipher"
+	"github.com/lm1996-mojor/go-core-library/config"
+	_const "github.com/lm1996-mojor/go-core-library/const"
+	"github.com/lm1996-mojor/go-core-library/global"
+	clog "github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/store"
+	"github.com/lm1996-mojor/go-core-library/utils/cipher"
 
 	"github.com/kataras/iris/v12"
 	"github.com/rs/zerolog/log"

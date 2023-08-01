@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	_const "mojor/go-core-library/const"
-	clog "mojor/go-core-library/log"
-	"mojor/go-core-library/proxy"
-	"mojor/go-core-library/rest"
-	"mojor/go-core-library/store"
+	_const "github.com/lm1996-mojor/go-core-library/const"
+	clog "github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/proxy"
+	"github.com/lm1996-mojor/go-core-library/rest"
+	"github.com/lm1996-mojor/go-core-library/store"
 
 	"github.com/kataras/iris/v12"
 )

@@ -1,10 +1,10 @@
 package core_libary
 
 import (
-	_ "mojor/go-core-library/config"
-	_ "mojor/go-core-library/databases"
-	_ "mojor/go-core-library/global"
-	_ "mojor/go-core-library/log"
-	_ "mojor/go-core-library/middleware"
-	_ "mojor/go-core-library/redis"
+	_ "github.com/lm1996-mojor/go-core-library/config"
+	_ "github.com/lm1996-mojor/go-core-library/databases"
+	_ "github.com/lm1996-mojor/go-core-library/global"
+	_ "github.com/lm1996-mojor/go-core-library/log"
+	_ "github.com/lm1996-mojor/go-core-library/middleware"
+	_ "github.com/lm1996-mojor/go-core-library/redis"
 )

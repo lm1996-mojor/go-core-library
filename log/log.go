@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"mojor/go-core-library/global"
+	"github.com/lm1996-mojor/go-core-library/global"
 
 	"github.com/kataras/iris/v12"
 	"github.com/rs/zerolog"

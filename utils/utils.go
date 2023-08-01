@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	_const "mojor/go-core-library/const"
-	"mojor/go-core-library/store"
+	_const "github.com/lm1996-mojor/go-core-library/const"
+	"github.com/lm1996-mojor/go-core-library/store"
 )
 
 func RandStr(len int) string {
