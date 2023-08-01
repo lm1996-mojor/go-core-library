@@ -2,12 +2,11 @@ package utils
 
 import (
 	"strings"
-	"time"
 
+	"github.com/lm1996-mojor/go-core-library/rest/req"
 	"github.com/lm1996-mojor/go-core-library/utils/repo"
 
 	uuid "github.com/satori/go.uuid"
-	"gorm.io/gorm"
 )
 
 // 编码前缀集
@@ -22,20 +21,15 @@ import (
 //	}
 
 type CodePrefix struct {
-	Id        int            `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int" json:"id,omitempty"`                   //主键id
-	CreateBy  int64          `gorm:"column:create_by;type:uint64" json:"createBy,omitempty"`                              //创建人
-	UpdateBy  int64          `gorm:"column:update_by;type:uint64" json:"updateBy,omitempty"`                              //更新人
-	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;type:datetime" json:"deletedAt,omitempty"`                          //软删标识（有值代表删除）
-	CreatedAt *time.Time     `gorm:"<-:create;autoCreateTime;column:created_at;type:datetime" json:"createdAt,omitempty"` //创建时间
-	UpdatedAt *time.Time     `gorm:"<-:update;autoUpdateTime;column:updated_at;type:datetime" json:"updatedAt,omitempty"` //更新时间
-	PrefixStr string         `gorm:"column:prefix_str;type:string" json:"prefixStr"`
-	Remark    string         `gorm:"column:remark;type:string" json:"remark"`
+	req.CommonModel
+	PrefixStr string `gorm:"column:prefix_str;type:string" json:"prefixStr"`
+	Remark    string `gorm:"column:remark;type:string" json:"remark"`
 }
 
 // 获取编码前缀
 func obtainCodePrefixText(codeType int) string {
 	PrefixStr := ""
-	repo.ObtainCustomDbByDbName("platform_management").Table("code_prefix").Where("search_code = ?", codeType).Select("prefix_str").Scan(&PrefixStr)
+	repo.ObtainCustomDbByDbName("platform_management").Table("code_prefix").Where("id = ?", codeType).Select("prefix_str").Scan(&PrefixStr)
 	if PrefixStr == "" {
 		PrefixStr = "link_ease"
 	}
