@@ -145,9 +145,10 @@ func connectDB(dsn string) (db *gorm.DB, err error) {
 	//通过传输进来的dsn信息，使用mysql.open方法打开数据的连接，并配置gorm.config结构体相关的信息
 	// NamingStrategy ：取消默认表名
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		FullSaveAssociations: true,
-		NamingStrategy:       schema.NamingStrategy{SingularTable: true}, // love表将是love，不再是loves，即可成功取消表明被加s
-		Logger:               newLogger,                                  //指定自定义的gorm日志结构体
+		FullSaveAssociations:                     true,
+		DisableForeignKeyConstraintWhenMigrating: true,
+		NamingStrategy:                           schema.NamingStrategy{SingularTable: true}, // love表将是love，不再是loves，即可成功取消表明被加s
+		Logger:                                   newLogger,                                  //指定自定义的gorm日志结构体
 	})
 	if err != nil {
 		panic(err)
