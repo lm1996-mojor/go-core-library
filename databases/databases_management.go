@@ -144,6 +144,7 @@ func initClientDB() {
 func connectDB(dsn string) (db *gorm.DB, err error) {
 	//通过传输进来的dsn信息，使用mysql.open方法打开数据的连接，并配置gorm.config结构体相关的信息
 	// NamingStrategy ：取消默认表名
+
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		FullSaveAssociations:                     true,
 		DisableForeignKeyConstraintWhenMigrating: true,
