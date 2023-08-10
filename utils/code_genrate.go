@@ -3,6 +3,7 @@ package utils
 import (
 	"strings"
 
+	"github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/rest/req"
 	"github.com/lm1996-mojor/go-core-library/utils/repo"
 
@@ -29,7 +30,13 @@ type CodePrefix struct {
 // 获取编码前缀
 func obtainCodePrefixText(codeType int) string {
 	PrefixStr := ""
-	repo.ObtainCustomDbByDbName("platform_management").Table("code_prefix").Where("id = ?", codeType).Select("prefix_str").Scan(&PrefixStr)
+	db := repo.ObtainCustomDbByDbName("platform_management")
+	if db != nil {
+		db.Table("code_prefix").Where("id = ?", codeType).Select("prefix_str").Scan(&PrefixStr)
+	} else {
+		log.Error("请配置platform_management数据库")
+		panic("服务器错误")
+	}
 	if PrefixStr == "" {
 		PrefixStr = "link_ease"
 	}
