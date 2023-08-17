@@ -238,7 +238,6 @@ func DisposeClientTx(err interface{}) {
 }
 
 func transaction(dbType string, err interface{}) {
-	mutex.Lock()
 	txObjKey := ""
 	switch dbType {
 	case _const.ClientTx:
@@ -259,5 +258,4 @@ func transaction(dbType string, err interface{}) {
 		}
 		store.Del(fmt.Sprintf("%p", &store.PoInterKey) + txObjKey)
 	}
-	mutex.Unlock()
 }
