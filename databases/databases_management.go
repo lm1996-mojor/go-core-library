@@ -190,17 +190,8 @@ func GetCustomDbTxByDbName(name string) (tx *gorm.DB) {
 
 // DisposeCustomizedTx commit the transaction if err is nil otherwise rollback
 func DisposeCustomizedTx(err interface{}) {
-	// 获取到单次会话获取过的数据库操作对象
-	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.CustomTx)
-	if ok {
-		tx := value.(*gorm.DB)
-		if err == nil {
-			tx.Commit()
-		} else {
-			tx.Rollback()
-		}
-		store.Del(fmt.Sprintf("%p", &store.PoInterKey) + _const.CustomTx)
-	}
+
+	transaction(_const.CustomTx, err)
 }
 
 // ---------- 主数据源处理代码块 ----------------
@@ -221,16 +212,7 @@ func GetMasterDbTx() (tx *gorm.DB) {
 }
 
 func DisposeMasterDbTx(err interface{}) {
-	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.MasterTx)
-	if ok {
-		tx := value.(*gorm.DB)
-		if err == nil {
-			tx.Commit()
-		} else {
-			tx.Rollback()
-		}
-		store.Del(fmt.Sprintf("%p", &store.PoInterKey) + _const.MasterTx)
-	}
+	transaction(_const.MasterTx, err)
 }
 
 // ---------- 租户数据源处理代码块 ----------------
@@ -252,7 +234,22 @@ func GetClientDbTX(clientId string) (tx *gorm.DB) {
 
 // DisposeClientTx commit the transaction if err is nil otherwise rollback
 func DisposeClientTx(err interface{}) {
-	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.ClientTx)
+	transaction(_const.ClientTx, err)
+}
+
+func transaction(dbType string, err interface{}) {
+	mutex.Lock()
+	txObjKey := ""
+	switch dbType {
+	case _const.ClientTx:
+		txObjKey = _const.ClientTx
+	case _const.MasterTx:
+		txObjKey = _const.ClientTx
+	default:
+		txObjKey = _const.CustomTx
+	}
+	// 获取到单次会话获取过的数据库操作对象
+	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + txObjKey)
 	if ok {
 		tx := value.(*gorm.DB)
 		if err == nil {
@@ -260,6 +257,7 @@ func DisposeClientTx(err interface{}) {
 		} else {
 			tx.Rollback()
 		}
-		store.Del(fmt.Sprintf("%p", &store.PoInterKey) + _const.ClientTx)
+		store.Del(fmt.Sprintf("%p", &store.PoInterKey) + txObjKey)
 	}
+	mutex.Unlock()
 }
