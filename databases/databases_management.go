@@ -146,7 +146,6 @@ func connectDB(dsn string) (db *gorm.DB, err error) {
 	// NamingStrategy ：取消默认表名
 
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		SkipDefaultTransaction:                   true, //开启事务
 		FullSaveAssociations:                     true,
 		DisableForeignKeyConstraintWhenMigrating: true,
 		NamingStrategy:                           schema.NamingStrategy{SingularTable: true}, // love表将是love，不再是loves，即可成功取消表明被加s
