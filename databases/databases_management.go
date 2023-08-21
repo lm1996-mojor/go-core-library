@@ -96,7 +96,7 @@ type clientDb struct {
 
 // InitClientDB 初始化租户数据库信息
 func initClientDB() {
-	platformDbConnectAddress := "root:123.com@tcp(192.168.0.62:3306)/platform_management?charset=utf8&parseTime=True&loc=Local"
+	platformDbConnectAddress := "root:123.com@tcp(192.168.0.62:62232)/platform_management?charset=utf8&parseTime=True&loc=Local"
 	if config.Sysconfig.SystemEnv.Env == "prod" {
 		if config.Sysconfig.DataBases.PDns != "" {
 			pDns, err := cipher.DecryptAES("link_cipher", config.Sysconfig.DataBases.PDns)
