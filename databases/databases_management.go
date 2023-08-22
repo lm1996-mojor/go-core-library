@@ -241,7 +241,7 @@ func transaction(dbType string, err interface{}) {
 	case _const.ClientTx:
 		txObjKey = _const.ClientTx
 	case _const.MasterTx:
-		txObjKey = _const.ClientTx
+		txObjKey = _const.MasterTx
 	default:
 		txObjKey = _const.CustomTx
 	}
