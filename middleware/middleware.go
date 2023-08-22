@@ -87,7 +87,7 @@ type MiddleWare struct {
 // 全局化web中间件，先于其他中间件执行
 var globalMiddleWares = []MiddleWare{
 	{token.CheckIdentity, "token检查", tokenMiddlewareName, "global", 100},
-	{recoverer.Recover, "统一错误处理，同时处理数据库事务", recoverMiddlewareName, "global", 1},
+	{recoverer.Recover, "统一错误处理", recoverMiddlewareName, "global", 1},
 }
 
 // web中间件，比global中间件晚运行

@@ -6,10 +6,8 @@ import (
 	"time"
 
 	"github.com/lm1996-mojor/go-core-library/config"
-	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
-	"github.com/lm1996-mojor/go-core-library/store"
 	"github.com/lm1996-mojor/go-core-library/utils/cipher"
 
 	"github.com/kataras/iris/v12"
@@ -176,21 +174,21 @@ func GetCustomizedDbByName(name string) (db *gorm.DB) {
 }
 
 func GetCustomDbTxByDbName(name string) (tx *gorm.DB) {
-	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.CustomTx)
-	if ok {
-		tx = value.(*gorm.DB)
-	} else {
-		tx = GetCustomizedDbByName(name).Begin()
-		store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.CustomTx, tx)
-	}
-	return
+	//value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.CustomTx)
+	//if ok {
+	//	tx = value.(*gorm.DB)
+	//} else {
+	//	tx = GetCustomizedDbByName(name).Begin()
+	//	store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.CustomTx, tx)
+	//}
+	//tx.WithContext(context.Background())
+	return GetCustomizedDbByName(name).Begin()
 }
 
 // DisposeCustomizedTx commit the transaction if err is nil otherwise rollback
-func DisposeCustomizedTx(err interface{}) {
-
-	transaction(_const.CustomTx, err)
-}
+//func DisposeCustomizedTx(err interface{}) {
+//	transaction(_const.CustomTx, err)
+//}
 
 // ---------- 主数据源处理代码块 ----------------
 
@@ -199,19 +197,19 @@ func GetMasterDb() (db *gorm.DB) {
 }
 
 func GetMasterDbTx() (tx *gorm.DB) {
-	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.MasterTx)
-	if ok {
-		tx = value.(*gorm.DB)
-	} else {
-		tx = GetMasterDb().Begin()
-		store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.MasterTx, tx)
-	}
-	return
+	//value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.MasterTx)
+	//if ok {
+	//	tx = value.(*gorm.DB)
+	//} else {
+	//	tx = GetMasterDb().Begin()
+	//	store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.MasterTx, tx)
+	//}
+	return GetMasterDb().Begin()
 }
 
-func DisposeMasterDbTx(err interface{}) {
-	transaction(_const.MasterTx, err)
-}
+//func DisposeMasterDbTx(err interface{}) {
+//	//transaction(_const.MasterTx, err)
+//}
 
 // ---------- 租户数据源处理代码块 ----------------
 
@@ -220,40 +218,40 @@ func GetClientDb(clientId string) (db *gorm.DB) {
 }
 
 func GetClientDbTX(clientId string) (tx *gorm.DB) {
-	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.ClientTx)
-	if ok {
-		tx = value.(*gorm.DB)
-	} else {
-		tx = GetClientDb(clientId).Begin()
-		store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.ClientTx, tx)
-	}
-	return
+	//value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.ClientTx)
+	//if ok {
+	//	tx = value.(*gorm.DB)
+	//} else {
+	//	tx = GetClientDb(clientId).Begin()
+	//	store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.ClientTx, tx)
+	//}
+	return GetClientDb(clientId).Begin()
 }
 
 // DisposeClientTx commit the transaction if err is nil otherwise rollback
-func DisposeClientTx(err interface{}) {
-	transaction(_const.ClientTx, err)
-}
+//func DisposeClientTx(err interface{}) {
+//	transaction(_const.ClientTx, err)
+//}
 
-func transaction(dbType string, err interface{}) {
-	txObjKey := ""
-	switch dbType {
-	case _const.ClientTx:
-		txObjKey = _const.ClientTx
-	case _const.MasterTx:
-		txObjKey = _const.MasterTx
-	default:
-		txObjKey = _const.CustomTx
-	}
-	// 获取到单次会话获取过的数据库操作对象
-	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + txObjKey)
-	if ok {
-		tx := value.(*gorm.DB)
-		if err == nil {
-			tx.Commit()
-		} else {
-			tx.Rollback()
-		}
-		store.Del(fmt.Sprintf("%p", &store.PoInterKey) + txObjKey)
-	}
-}
+//func transaction(dbType string, err interface{}) {
+//	txObjKey := ""
+//	switch dbType {
+//	case _const.ClientTx:
+//		txObjKey = _const.ClientTx
+//	case _const.MasterTx:
+//		txObjKey = _const.MasterTx
+//	default:
+//		txObjKey = _const.CustomTx
+//	}
+//	// 获取到单次会话获取过的数据库操作对象
+//	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + txObjKey)
+//	if ok {
+//		tx := value.(*gorm.DB)
+//		if err == nil {
+//			tx.Commit()
+//		} else {
+//			tx.Rollback()
+//		}
+//		store.Del(fmt.Sprintf("%p", &store.PoInterKey) + txObjKey)
+//	}
+//}
