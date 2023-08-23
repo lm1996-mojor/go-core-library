@@ -184,7 +184,7 @@ func GetCustomDbTxByDbName(ctx iris.Context, name string) (tx *gorm.DB) {
 		tx = GetCustomizedDbByName(name).Begin()
 		store.Set(fmt.Sprintf("%p", &ctx)+_const.CustomTx, tx)
 	}
-	return GetCustomizedDbByName(name).Begin()
+	return
 }
 
 // DisposeCustomizedTx commit the transaction if err is nil otherwise rollback
@@ -195,7 +195,7 @@ func DisposeCustomizedTx(ctx iris.Context, err interface{}) {
 // ---------- 主数据源处理代码块 ----------------
 
 func GetMasterDb() (db *gorm.DB) {
-	return dbMap[config.Sysconfig.DataBases.MasterDbName]
+	return dbMap[config.Sysconfig.DataBases.MasterDbName].WithContext(context.Background())
 }
 
 func GetMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
@@ -206,7 +206,7 @@ func GetMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
 		tx = GetMasterDb().Begin()
 		store.Set(fmt.Sprintf("%p", &ctx)+_const.MasterTx, tx)
 	}
-	return GetMasterDb().Begin()
+	return
 }
 
 func DisposeMasterDbTx(ctx iris.Context, err interface{}) {
@@ -216,7 +216,7 @@ func DisposeMasterDbTx(ctx iris.Context, err interface{}) {
 // ---------- 租户数据源处理代码块 ----------------
 
 func GetClientDb(clientId string) (db *gorm.DB) {
-	return dbMap[clientId]
+	return dbMap[clientId].WithContext(context.Background())
 }
 
 func GetClientDbTX(ctx iris.Context, clientId string) (tx *gorm.DB) {
@@ -227,7 +227,7 @@ func GetClientDbTX(ctx iris.Context, clientId string) (tx *gorm.DB) {
 		tx = GetClientDb(clientId).Begin()
 		store.Set(fmt.Sprintf("%p", &ctx)+_const.ClientTx, tx)
 	}
-	return GetClientDb(clientId).Begin()
+	return
 }
 
 // DisposeClientTx commit the transaction if err is nil otherwise rollback
