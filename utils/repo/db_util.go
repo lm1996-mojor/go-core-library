@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/kataras/iris/v12"
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	dbLib "github.com/lm1996-mojor/go-core-library/databases"
 	"github.com/lm1996-mojor/go-core-library/log"
@@ -21,8 +22,8 @@ func ObtainCustomDbByDbName(dbName string) (db *gorm.DB) {
 }
 
 // ObtainCustomTxDbByDbName 根据自定义的数据源名称获取带事务的自定义数据源对象
-func ObtainCustomTxDbByDbName(dbName string) (tx *gorm.DB) {
-	return dbLib.GetCustomDbTxByDbName(dbName)
+func ObtainCustomTxDbByDbName(ctx iris.Context, dbName string) (tx *gorm.DB) {
+	return dbLib.GetCustomDbTxByDbName(ctx, dbName)
 }
 
 // ObtainMasterDb 获取常规主数据源
@@ -31,13 +32,13 @@ func ObtainMasterDb() (db *gorm.DB) {
 }
 
 // ObtainMasterDbTx 获取带事务的数据源
-func ObtainMasterDbTx() (tx *gorm.DB) {
-	return dbLib.GetMasterDbTx()
+func ObtainMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
+	return dbLib.GetMasterDbTx(ctx)
 }
 
 // ObtainClientDb 获取常规动态租户数据源
-func ObtainClientDb() (db *gorm.DB) {
-	clientId, err := obtainClientId()
+func ObtainClientDb(ctx iris.Context) (db *gorm.DB) {
+	clientId, err := ObtainClientId(ctx)
 	if err != nil {
 		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
 		panic("服务器错误")
@@ -46,18 +47,18 @@ func ObtainClientDb() (db *gorm.DB) {
 }
 
 // ObtainClientDbTx 获取带事务的动态租户数据源
-func ObtainClientDbTx() (db *gorm.DB) {
-	clientId, err := obtainClientId()
+func ObtainClientDbTx(ctx iris.Context) (db *gorm.DB) {
+	clientId, err := ObtainClientId(ctx)
 	if err != nil {
 		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
 		panic("服务器错误")
 	}
-	return dbLib.GetClientDbTX(fmt.Sprintf("%d", clientId))
+	return dbLib.GetClientDbTX(ctx, fmt.Sprintf("%d", clientId))
 }
 
 // ObtainClientId 获取当前的租户id
-func obtainClientId() (clientId int64, err error) {
-	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.ClientID)
+func ObtainClientId(ctx iris.Context) (clientId int64, err error) {
+	value, ok := store.Get(fmt.Sprintf("%p", &ctx) + _const.ClientID)
 	if !ok {
 		return 0, errors.New("租户不确定")
 	}

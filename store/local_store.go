@@ -5,12 +5,13 @@ import (
 )
 
 var storeMap sync.Map
-var PoInterKey = MapPoInterKey{}
 
-type MapPoInterKey struct {
-	UserId   string
-	ClientId string
-}
+//var PoInterKey = MapPoInterKey{}
+//
+//type MapPoInterKey struct {
+//	UserId   string
+//	ClientId string
+//}
 
 // Set store value
 func Set(key string, value interface{}) {

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kataras/iris/v12"
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/store"
 )
@@ -56,8 +57,8 @@ func SplitRedisPort(ports string) (split []string) {
 }
 
 // ObtainClientId 获取当前的租户id
-func ObtainClientId() (clientId int64, err error) {
-	value, ok := store.Get(fmt.Sprintf("%p", &store.PoInterKey) + _const.ClientID)
+func ObtainClientId(ctx iris.Context) (clientId int64, err error) {
+	value, ok := store.Get(fmt.Sprintf("%p", &ctx) + _const.ClientID)
 	if !ok {
 		return 0, errors.New("租户不确定")
 	}

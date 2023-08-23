@@ -77,12 +77,12 @@ func CheckIdentity(ctx iris.Context) {
 		}
 		// 以下所有数据都会在单次回话完成后进行清空
 		//将从token中获取到的租户id存入tls中，用于动态数据源
-		store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.ClientID, tokenClaims[_const.ClientID].(string))
-		store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.ClientCode, tokenClaims[_const.ClientCode].(string))
-		store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.UserId, tokenClaims[_const.UserId].(string))
-		store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.UserCode, tokenClaims[_const.UserCode].(string))
+		store.Set(fmt.Sprintf("%p", &ctx)+_const.ClientID, tokenClaims[_const.ClientID].(string))
+		store.Set(fmt.Sprintf("%p", &ctx)+_const.ClientCode, tokenClaims[_const.ClientCode].(string))
+		store.Set(fmt.Sprintf("%p", &ctx)+_const.UserId, tokenClaims[_const.UserId].(string))
+		store.Set(fmt.Sprintf("%p", &ctx)+_const.UserCode, tokenClaims[_const.UserCode].(string))
 		//将解析后的token中的用户信息存入local store
-		store.Set(fmt.Sprintf("%p", &store.PoInterKey)+_const.JwtData, tokenClaims["client_code"].(map[string]interface{}))
+		store.Set(fmt.Sprintf("%p", &ctx)+_const.JwtData, tokenClaims["client_code"].(map[string]interface{}))
 		ctx.Next()
 	} else {
 		ctx.JSON(rest.FailCustom(int(userClaims["code"].(float64)), userClaims["msg"].(string), rest.ERROR))
