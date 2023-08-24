@@ -106,7 +106,7 @@ func initClientDB() {
 				panic("初次解密错误")
 			}
 			// 201dd1f39f184638 = MD5(link_cipher)加密后的16位
-			pDns := localCipher.AesDecryptECB([]byte(_const.DbLinkEncryptKey), decodeString)
+			pDns := localCipher.AesDecryptECB(decodeString, []byte(_const.DbLinkEncryptKey))
 			if len(pDns) <= 0 {
 				panic("数据库链接解密错误")
 			}
