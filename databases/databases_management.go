@@ -2,6 +2,7 @@ package databases
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"sync"
 	"time"
@@ -99,8 +100,13 @@ func initClientDB() {
 	platformDbConnectAddress := "root:123.com@tcp(192.168.0.62:62232)/platform_management?charset=utf8&parseTime=True&loc=Local"
 	if config.Sysconfig.SystemEnv.Env == "prod" {
 		if config.Sysconfig.DataBases.PDns != "" {
+			// 链接初次解密
+			decodeString, err := base64.StdEncoding.DecodeString(config.Sysconfig.DataBases.PDns)
+			if err != nil {
+				panic("初次解密错误")
+			}
 			// 201dd1f39f184638 = MD5(link_cipher)加密后的16位
-			pDns := localCipher.AesDecryptECB([]byte("201dd1f39f184638"), []byte(config.Sysconfig.DataBases.PDns))
+			pDns := localCipher.AesDecryptECB([]byte("201dd1f39f184638"), decodeString)
 			if len(pDns) <= 0 {
 				panic("数据库链接解密错误")
 			}
