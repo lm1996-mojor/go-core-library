@@ -6,14 +6,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/kataras/iris/v12"
 	"github.com/lm1996-mojor/go-core-library/config"
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/store"
-	"github.com/lm1996-mojor/go-core-library/utils/cipher"
-
-	"github.com/kataras/iris/v12"
+	localCipher "github.com/lm1996-mojor/go-core-library/utils/cipher"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -100,12 +99,12 @@ func initClientDB() {
 	platformDbConnectAddress := "root:123.com@tcp(192.168.0.62:62232)/platform_management?charset=utf8&parseTime=True&loc=Local"
 	if config.Sysconfig.SystemEnv.Env == "prod" {
 		if config.Sysconfig.DataBases.PDns != "" {
-			pDns, err := cipher.DecryptAES("link_cipher", config.Sysconfig.DataBases.PDns)
-			if err != nil {
-				clog.Error("平台数据库连接地址解密错误: ")
-				panic(err)
+			// 201dd1f39f184638 = MD5(link_cipher)加密后的16位
+			pDns := localCipher.AesDecryptECB([]byte("201dd1f39f184638"), []byte(config.Sysconfig.DataBases.PDns))
+			if len(pDns) <= 0 {
+				panic("数据库链接解密错误")
 			}
-			platformDbConnectAddress = pDns
+			platformDbConnectAddress = string(pDns)
 		} else {
 			panic("检测到目前配置为生产线环境，请配置平台数据库连接地址")
 		}

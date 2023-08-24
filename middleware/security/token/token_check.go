@@ -38,7 +38,7 @@ func CheckIdentity(ctx iris.Context) {
 	//		ctx.Next()
 	//		return
 	//	}
-	//	ctx.JSON(rest.FailCustom(403, "尚未登录", rest.ERROR))
+	//	ctx.JSON(rest.FailCustom(401, "尚未登录", rest.ERROR))
 	//	return
 	//}
 	//
