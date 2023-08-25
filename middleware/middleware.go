@@ -7,6 +7,7 @@ import (
 	"github.com/lm1996-mojor/go-core-library/config"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/middleware/recoverer"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/token"
 
@@ -56,6 +57,7 @@ func Init(app *iris.Application) {
 		})
 		// 注册中间件
 		for _, ware := range globalMiddleWares {
+			clog.Info(ware.HandlerCnDesc + "注册中...")
 			app.UseGlobal(ware.Handler)
 		}
 	} else {
@@ -67,6 +69,7 @@ func Init(app *iris.Application) {
 			return globalMiddleWares[i].MiddleWareLevel > globalMiddleWares[j].MiddleWareLevel
 		})
 		for _, smd := range singleMiddleWares {
+			clog.Info(smd.HandlerCnDesc + "注册中...")
 			app.Use(smd.Handler)
 		}
 	} else {
@@ -86,8 +89,9 @@ type MiddleWare struct {
 
 // 全局化web中间件，先于其他中间件执行
 var globalMiddleWares = []MiddleWare{
-	{token.CheckIdentity, "token检查", tokenMiddlewareName, "global", 100},
-	{recoverer.Recover, "统一错误处理", recoverMiddlewareName, "global", 1},
+	{http_session.SetCurrentHttpSessionUniqueKey, "设置当前会话唯一key", "current_http_session_unique_key", "global", 1},
+	{recoverer.Recover, "统一错误处理", "err_recover", "global", 2},
+	{token.CheckIdentity, "token检查", "token_check", "global", 100},
 }
 
 // web中间件，比global中间件晚运行

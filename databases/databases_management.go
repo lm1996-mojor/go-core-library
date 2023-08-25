@@ -12,6 +12,7 @@ import (
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/store"
 	localCipher "github.com/lm1996-mojor/go-core-library/utils/cipher"
 	"github.com/rs/zerolog/log"
@@ -182,12 +183,12 @@ func GetCustomizedDbByName(name string) (db *gorm.DB) {
 }
 
 func GetCustomDbTxByDbName(ctx iris.Context, name string) (tx *gorm.DB) {
-	value, ok := store.Get(fmt.Sprintf("%p", &ctx) + _const.CustomTx)
+	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.CustomTx)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
 		tx = GetCustomizedDbByName(name).Begin()
-		store.Set(fmt.Sprintf("%p", &ctx)+_const.CustomTx, tx)
+		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.CustomTx, tx)
 	}
 	return
 }
@@ -204,12 +205,12 @@ func GetMasterDb() (db *gorm.DB) {
 }
 
 func GetMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
-	value, ok := store.Get(fmt.Sprintf("%p", &ctx) + _const.MasterTx)
+	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.MasterTx)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
 		tx = GetMasterDb().Begin()
-		store.Set(fmt.Sprintf("%p", &ctx)+_const.MasterTx, tx)
+		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.MasterTx, tx)
 	}
 	return
 }
@@ -225,12 +226,12 @@ func GetClientDb(clientId string) (db *gorm.DB) {
 }
 
 func GetClientDbTX(ctx iris.Context, clientId string) (tx *gorm.DB) {
-	value, ok := store.Get(fmt.Sprintf("%p", &ctx) + _const.ClientTx)
+	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.ClientTx)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
 		tx = GetClientDb(clientId).Begin()
-		store.Set(fmt.Sprintf("%p", &ctx)+_const.ClientTx, tx)
+		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientTx, tx)
 	}
 	return
 }
@@ -251,7 +252,7 @@ func transaction(ctx iris.Context, dbType string, err interface{}) {
 		txObjKey = _const.CustomTx
 	}
 	// 获取到单次会话获取过的数据库操作对象
-	value, ok := store.Get(fmt.Sprintf("%p", &ctx) + txObjKey)
+	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + txObjKey)
 	if ok {
 		tx := value.(*gorm.DB)
 		if err == nil {
@@ -259,6 +260,6 @@ func transaction(ctx iris.Context, dbType string, err interface{}) {
 		} else {
 			tx.Rollback()
 		}
-		store.Del(fmt.Sprintf("%p", &ctx) + txObjKey)
+		store.Del(http_session.GetCurrentHttpSessionUniqueKey(ctx) + txObjKey)
 	}
 }
