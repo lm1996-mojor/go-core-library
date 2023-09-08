@@ -2,6 +2,7 @@ package token
 
 import (
 	"encoding/json"
+	"strings"
 
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	clog "github.com/lm1996-mojor/go-core-library/log"
@@ -49,7 +50,13 @@ func CheckIdentity(ctx iris.Context) {
 	//	如果验证不通过则返回错误信息
 	//*/
 	//去除token 头部信息
-	token := author[7:]
+	var token string
+	if strings.Contains(author, "Bearer ") {
+		token = author[7:]
+	} else {
+		token = author
+	}
+
 	// 获取解析后的token信息
 	respBody, err := proxy.GetParseToken(token, "http://192.168.31.113:9901/platform_inlet/sso/parse/token")
 	if err != nil {
