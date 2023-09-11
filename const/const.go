@@ -15,4 +15,5 @@ const (
 	UserCode                    = "_user_code"                       // 用户唯一编码获取key名称
 	ClientCode                  = "_client_code"                     // 租户唯一编码获取key名称
 	CurrentHttpSessionUniqueKey = "_current_http_session_unique_key" // 当前请求会话唯一key
+	TokenOriginal               = "_token_original"                  // token原文
 )
