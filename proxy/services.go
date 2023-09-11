@@ -14,9 +14,7 @@ import (
 )
 
 const (
-	GET    = "GET"
-	POST   = "POST"
-	DELETE = "DELETE"
+	GET = "GET"
 )
 
 func GetParseToken(token string, url string) (respBody []byte, err error) {
