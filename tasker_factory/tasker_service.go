@@ -51,6 +51,7 @@ func ExecTasker(clientCode string, taskerId string, taskerFunc func()) {
 	tasker := TaskerMap[clientCode][taskerId]
 	log.Info("任务执行")
 	mutex.Lock()
+	tasker.TaskerStatus = 2
 	go taskerMain(tasker, taskerFunc)
 	mutex.Unlock()
 }
@@ -97,7 +98,7 @@ func DeleteTasker(clientCode string, taskerId string) {
 // DeleteStoppedTask 删除指定租户全部已停止的任务
 func DeleteStoppedTask(clientCode string) {
 	for cCode, tasker := range TaskerMap[clientCode] {
-		if tasker.TaskerStatus == "stop" {
+		if tasker.TaskerStatus == 4 {
 			DeleteTasker(cCode, "")
 		}
 	}
