@@ -17,7 +17,9 @@ import (
 func CheckIdentity(ctx iris.Context) {
 	//获取token
 	author := ctx.GetHeader(_const.TokenName)
-
+	if author == "" {
+		ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
+	}
 	//获取请求路径
 	reqPath := ctx.Path()
 	clog.Info("请求路径: " + reqPath)
@@ -74,12 +76,12 @@ func CheckIdentity(ctx iris.Context) {
 		tokenClaims := userClaims["data"].(map[string]interface{})["parse_token"].(map[string]interface{})
 		if t, ok := tokenClaims["token_type"].(string); ok && t != _const.TokenType { //不是access token
 			clog.Info("令牌类型认证无效: " + err.Error())
-			ctx.JSON(rest.FailCustom(403, "登录信息无效，请重新登录", rest.ERROR))
+			ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
 			return
 		}
 		if t, ok := tokenClaims["token_single"].(string); ok && t != _const.TokenSignature { //不是access token
 			clog.Info("令牌签名认证无效: " + err.Error())
-			ctx.JSON(rest.FailCustom(403, "登录信息无效，请重新登录", rest.ERROR))
+			ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
 			return
 		}
 		// 以下所有数据都会在单次回话完成后进行清空
