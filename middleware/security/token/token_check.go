@@ -30,34 +30,7 @@ func CheckIdentity(ctx iris.Context) {
 	if author == "" {
 		ctx.JSON(rest.FailCustom(401, "尚未登录,请登录后再进行操作", rest.ERROR))
 	}
-	//clog.Info("token_util：" + author)
-	/**
-	token不存在
-	判断token是否存在，如果不存在，
-	则判断访问的接口是否存在白名单中
-		如果存在则继续路由访问
-		如果不存在则返回错误信息
-	*/
-	//ctx.Values().Set("pass_label", "N")
-	//if requestfilter.InList(reqPath, 1) {
-	//	ctx.Values().Set("pass_label", "Y")
-	//	ctx.Next()
-	//	return
-	//} else if reflect.DeepEqual(author, "") || len(author) < 7 {
-	//	if requestfilter.InList(reqPath, 2) {
-	//		ctx.Next()
-	//		return
-	//	}
-	//	ctx.JSON(rest.FailCustom(401, "尚未登录", rest.ERROR))
-	//	return
-	//}
-	//
-	///**
-	//token存在
-	//请求统一登录系统进行token验证并解析
-	//	如果验证通过则进行后续操作
-	//	如果验证不通过则返回错误信息
-	//*/
+
 	//去除token 头部信息
 	var token string
 	if strings.Contains(author, "Bearer ") {
@@ -69,7 +42,7 @@ func CheckIdentity(ctx iris.Context) {
 	// 获取解析后的token信息
 	respBody, err := proxy.GetParseToken(token, "http://192.168.31.113:9901/platform_inlet/sso/parse/token")
 	if err != nil {
-		panic("CheckIdentity->token解析: 响应出错")
+		clog.Error("token解析: 响应出错" + err.Error())
 		return
 	}
 	// 解析响应体中的数据
