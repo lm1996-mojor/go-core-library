@@ -7,6 +7,7 @@ import (
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	clog "github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
+	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
 	"github.com/lm1996-mojor/go-core-library/proxy"
 	"github.com/lm1996-mojor/go-core-library/rest"
 	"github.com/lm1996-mojor/go-core-library/store"
@@ -15,14 +16,20 @@ import (
 )
 
 func CheckIdentity(ctx iris.Context) {
-	//获取token
-	author := ctx.GetHeader(_const.TokenName)
-	if author == "" {
-		ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
-	}
 	//获取请求路径
 	reqPath := ctx.Path()
 	clog.Info("请求路径: " + reqPath)
+	ctx.Values().Set("pass_label", "N")
+	if white_list.InList(reqPath, 1) {
+		ctx.Values().Set("pass_label", "Y")
+		ctx.Next()
+		return
+	}
+	//获取token
+	author := ctx.GetHeader(_const.TokenName)
+	if author == "" {
+		ctx.JSON(rest.FailCustom(401, "尚未登录,请登录后再进行操作", rest.ERROR))
+	}
 	//clog.Info("token_util：" + author)
 	/**
 	token不存在

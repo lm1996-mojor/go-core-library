@@ -7,13 +7,12 @@ import (
 	"github.com/lm1996-mojor/go-core-library/config"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
+	cors "github.com/lm1996-mojor/go-core-library/middleware/cors_handler"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/middleware/recoverer"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/token"
 
 	"github.com/kataras/iris/v12"
-
-	cors "github.com/lm1996-mojor/go-core-library/middleware/cors_handler"
 
 	"github.com/kataras/iris/v12/context"
 )
@@ -23,8 +22,19 @@ const (
 	recoverMiddlewareName = "err_recover"
 )
 
+const runLevel = 9
+
+func init() {
+	global.RegisterInit(global.Initiator{Action: Init, Level: runLevel})
+}
+
 // Init 中间件初始化
 func Init(app *iris.Application) {
+
+	RegisterMiddleWare(app)
+}
+
+func RegisterMiddleWare(app *iris.Application) {
 	app.Configure(iris.WithOptimizations)
 	// 关闭token检测
 	if !config.Sysconfig.Detection.Token {
@@ -137,10 +147,4 @@ func AppendGlobalMiddleWares(item []MiddleWare) {
 		}
 	}
 	globalMiddleWares = append(globalMiddleWares, item...)
-}
-
-const runLevel = 9
-
-func init() {
-	global.RegisterInit(global.Initiator{Action: Init, Level: runLevel})
 }
