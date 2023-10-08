@@ -10,6 +10,7 @@ import (
 	cors "github.com/lm1996-mojor/go-core-library/middleware/cors_handler"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/middleware/recoverer"
+	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/token"
 
 	"github.com/kataras/iris/v12"
@@ -30,7 +31,9 @@ func init() {
 
 // Init 中间件初始化
 func Init(app *iris.Application) {
-
+	// 初始化白名单
+	white_list.Init()
+	// 注册中间件
 	RegisterMiddleWare(app)
 }
 
