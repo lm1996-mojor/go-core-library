@@ -57,10 +57,11 @@ func InList(path string, checkType int) bool {
 	}
 	//判断请求路径是否在白名单中
 	for _, g := range list {
-		clog.Infof(path+" 路由匹配结果：", g.Match([]byte(path)))
 		if g.Match([]byte(path)) {
+			clog.Info(path + " 白名单路由匹配结果：成功")
 			return true
 		}
 	}
+	clog.Info(path + " 白名单路由匹配结果：失败")
 	return false
 }
