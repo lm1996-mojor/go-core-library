@@ -7,7 +7,7 @@ import (
 	"github.com/lm1996-mojor/go-core-library/rest/req"
 	"github.com/lm1996-mojor/go-core-library/utils/repo"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 // 编码前缀集
@@ -45,7 +45,7 @@ func obtainCodePrefixText(codeType int) string {
 
 // GenerateCodeByUUID 根据UUID生成编码
 func GenerateCodeByUUID(codeType int) (code string) {
-	uuId := uuid.NewV4()
+	uuId := uuid.New()
 	idStr := uuId.String()
 	idStr = strings.ToUpper(strings.ReplaceAll(idStr, "-", ""))
 	return obtainCodePrefixText(codeType) + idStr
