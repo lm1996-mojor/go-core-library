@@ -31,6 +31,17 @@ func Get(key string) (value interface{}, ok bool) {
 	return
 }
 
+func GetValueByCondition(conditionStr string) (localStoreMap sync.Map) {
+	storeMap.Range(func(key, value any) bool {
+		if strings.Contains(key.(string), conditionStr) {
+			localStoreMap.Store(key, value)
+			Del(key.(string))
+		}
+		return true
+	})
+	return
+}
+
 // Del delete value by key
 func Del(key string) {
 	//tls.Del(key)

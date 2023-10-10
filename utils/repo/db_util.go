@@ -18,7 +18,7 @@ import (
 
 // ObtainCustomDbByDbName 根据自定义的数据源名称获取自定义数据源对象
 func ObtainCustomDbByDbName(dbName string) (db *gorm.DB) {
-	return dbLib.GetCustomizedDbByName(dbName)
+	return dbLib.GetDbByName(dbName)
 }
 
 // ObtainCustomTxDbByDbName 根据自定义的数据源名称获取带事务的自定义数据源对象
@@ -28,7 +28,7 @@ func ObtainCustomTxDbByDbName(ctx iris.Context, dbName string) (tx *gorm.DB) {
 
 // ObtainMasterDb 获取常规主数据源
 func ObtainMasterDb() (db *gorm.DB) {
-	return dbLib.GetMasterDb()
+	return dbLib.GetDbByName("")
 }
 
 // ObtainMasterDbTx 获取带事务的数据源
@@ -43,7 +43,7 @@ func ObtainClientDb(ctx iris.Context) (db *gorm.DB) {
 		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
 		panic("服务器错误")
 	}
-	return dbLib.GetClientDb(fmt.Sprintf("%d", clientId))
+	return dbLib.GetDbByName(fmt.Sprintf("%d", clientId))
 }
 
 // ObtainClientDbTx 获取带事务的动态租户数据源
@@ -70,35 +70,12 @@ func ObtainClientId(ctx iris.Context) (clientId int64, err error) {
 	return cId, nil
 }
 
-/**
------------------  老版架构数据库工具分界线---------------------
-repo_util所需方法
-*/
-
-type OrderType int
-
-const (
-	Desc OrderType = iota
-	Asc
-)
-
-type SortBo struct {
-	FiledName string
-	Order     OrderType
+// ObtainDbObjByDbName 根据名称获取独立存储空间的db对象
+func ObtainDbObjByDbName(dbName string) (db *gorm.DB) {
+	return dbLib.GetDbByName(dbName)
 }
 
-const DeletedAtFilterSql = "deleted_at IS NULL"
-
-func (s *SortBo) ConvertSortString() string {
-	return fmt.Sprintf("%s %s", s.FiledName, s.Order.ConvertString())
-}
-
-func (o OrderType) ConvertString() string {
-	switch o {
-	case Desc:
-		return "desc"
-	case Asc:
-		return "asc"
-	}
-	return "desc"
+// ObtainDbTxObjByDbName 根据名称获取独立存储空间且带事务的db对象,该方法仅限用于一次请求需要操作多个数据源的场景
+func ObtainDbTxObjByDbName(ctx iris.Context, dbName string) (tx *gorm.DB) {
+	return dbLib.GetDbTxObjByDbName(ctx, dbName)
 }

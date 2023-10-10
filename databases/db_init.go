@@ -1,7 +1,6 @@
 package databases
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
 	"sync"
@@ -12,8 +11,6 @@ import (
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
-	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
-	"github.com/lm1996-mojor/go-core-library/store"
 	localCipher "github.com/lm1996-mojor/go-core-library/utils/cipher"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/mysql"
@@ -24,6 +21,18 @@ import (
 
 var mutex sync.Mutex                  // 锁对象
 var dbMap = make(map[string]*gorm.DB) // 租户数据库map
+
+// ClientDb  租户数据库信息
+type clientDb struct {
+	ClientId int64  `json:"-,omitempty"`       // 租户id
+	DbHost   string `json:"dbHost,omitempty"`  // 租户专属数据库连接地址
+	DbPort   string `json:"dbPort,omitempty"`  // 租户专属数据库连接端口
+	DbName   string `json:"dbName,omitempty"`  // 租户专属数据库名称
+	DbUser   string `json:"dbUser,omitempty"`  // 租户专属数据库账户
+	DbPass   string `json:"dbPass,omitempty"`  // 租户专属数据库密码
+	DbType   string `json:"dbType,omitempty"`  // 租户专属数据库类型（mysql/Oracle/PostgreSQL/DB2/SQL Server、MariaDB）
+	EnvType  int8   `json:"envType,omitempty"` // 数据库环境类型（1 线上 2 开发  3 测试 4 体验）
+}
 
 // GormLogger 自定义Gorm日志结构体
 type GormLogger struct{}
@@ -82,18 +91,6 @@ func initCustomizedDB() {
 		dbMap[databaseName] = db
 		mutex.Unlock()
 	}
-}
-
-// ClientDb  租户数据库信息
-type clientDb struct {
-	ClientId int64  `json:"-,omitempty"`       // 租户id
-	DbHost   string `json:"dbHost,omitempty"`  // 租户专属数据库连接地址
-	DbPort   string `json:"dbPort,omitempty"`  // 租户专属数据库连接端口
-	DbName   string `json:"dbName,omitempty"`  // 租户专属数据库名称
-	DbUser   string `json:"dbUser,omitempty"`  // 租户专属数据库账户
-	DbPass   string `json:"dbPass,omitempty"`  // 租户专属数据库密码
-	DbType   string `json:"dbType,omitempty"`  // 租户专属数据库类型（mysql/Oracle/PostgreSQL/DB2/SQL Server、MariaDB）
-	EnvType  int8   `json:"envType,omitempty"` // 数据库环境类型（1 线上 2 开发  3 测试 4 体验）
 }
 
 // InitClientDB 初始化租户数据库信息
@@ -169,97 +166,4 @@ func connectDB(dsn string) (db *gorm.DB, err error) {
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(30)
 	return
-}
-
-// lib.ObtainCustomDb(“user_center”) 根据名称获取自定义数据库对象
-// lib.ObtainMasterDb() 获取主要连接的数据库对象
-// lib.ObtainDefaultDb() 获取默认租户的数据库对象（根据token解析出来的租户id所得到的租住数据库对象）
-
-// ---------- 自定义数据源处理代码块 ----------------
-
-// GetCustomizedDbByName 根据名称获取数据库操作对象
-func GetCustomizedDbByName(name string) (db *gorm.DB) {
-	return dbMap[name].WithContext(context.Background())
-}
-
-func GetCustomDbTxByDbName(ctx iris.Context, name string) (tx *gorm.DB) {
-	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.CustomTx)
-	if ok {
-		tx = value.(*gorm.DB)
-	} else {
-		tx = GetCustomizedDbByName(name).Begin()
-		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.CustomTx, tx)
-	}
-	return
-}
-
-// DisposeCustomizedTx commit the transaction if err is nil otherwise rollback
-func DisposeCustomizedTx(ctx iris.Context, err interface{}) {
-	transaction(ctx, _const.CustomTx, err)
-}
-
-// ---------- 主数据源处理代码块 ----------------
-
-func GetMasterDb() (db *gorm.DB) {
-	return dbMap[config.Sysconfig.DataBases.MasterDbName].WithContext(context.Background())
-}
-
-func GetMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
-	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.MasterTx)
-	if ok {
-		tx = value.(*gorm.DB)
-	} else {
-		tx = GetMasterDb().Begin()
-		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.MasterTx, tx)
-	}
-	return
-}
-
-func DisposeMasterDbTx(ctx iris.Context, err interface{}) {
-	transaction(ctx, _const.MasterTx, err)
-}
-
-// ---------- 租户数据源处理代码块 ----------------
-
-func GetClientDb(clientId string) (db *gorm.DB) {
-	return dbMap[clientId].WithContext(context.Background())
-}
-
-func GetClientDbTX(ctx iris.Context, clientId string) (tx *gorm.DB) {
-	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.ClientTx)
-	if ok {
-		tx = value.(*gorm.DB)
-	} else {
-		tx = GetClientDb(clientId).Begin()
-		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientTx, tx)
-	}
-	return
-}
-
-// DisposeClientTx commit the transaction if err is nil otherwise rollback
-func DisposeClientTx(ctx iris.Context, err interface{}) {
-	transaction(ctx, _const.ClientTx, err)
-}
-
-func transaction(ctx iris.Context, dbType string, err interface{}) {
-	txObjKey := ""
-	switch dbType {
-	case _const.ClientTx:
-		txObjKey = _const.ClientTx
-	case _const.MasterTx:
-		txObjKey = _const.MasterTx
-	default:
-		txObjKey = _const.CustomTx
-	}
-	// 获取到单次会话获取过的数据库操作对象
-	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + txObjKey)
-	if ok {
-		tx := value.(*gorm.DB)
-		if err == nil {
-			tx.Commit()
-		} else {
-			tx.Rollback()
-		}
-		store.Del(http_session.GetCurrentHttpSessionUniqueKey(ctx) + txObjKey)
-	}
 }
