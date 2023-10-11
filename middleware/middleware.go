@@ -64,9 +64,9 @@ func RegisterMiddleWare(app *iris.Application) {
 	clog.Info("中间件中心注册中间件中.....")
 
 	if len(globalMiddleWares) > 0 {
-		// 按照等级排序: 降序
+		// 按照等级排序: 升序
 		sort.Slice(globalMiddleWares, func(i, j int) bool {
-			return globalMiddleWares[i].MiddleWareLevel > globalMiddleWares[j].MiddleWareLevel
+			return globalMiddleWares[i].MiddleWareLevel < globalMiddleWares[j].MiddleWareLevel
 		})
 		// 注册中间件
 		for _, ware := range globalMiddleWares {
@@ -97,7 +97,7 @@ type MiddleWare struct {
 	HandlerCnDesc   string          // 中间件处理器描述
 	HandlerEnDesc   string          // 中间件处理器英文描述
 	HandlerServer   string          // 中间件所属服务，用于解决所属服务在使用公共库时。不会重复注册中间件。
-	MiddleWareLevel int32           // 中间件等级(影响中间件运行顺序,数值越大，等级越高)
+	MiddleWareLevel int32           // 中间件等级(影响中间件运行顺序,数值越大，等级越小)
 }
 
 // 全局化web中间件，先于其他中间件执行

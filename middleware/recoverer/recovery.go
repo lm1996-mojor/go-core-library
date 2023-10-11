@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/kataras/iris/v12"
-	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/databases"
 	"github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/rest"
@@ -23,7 +22,7 @@ func Recover(ctx iris.Context) {
 			log.Error("服务器错误：" + fmt.Sprint(err))
 			ctx.JSON(rest.FailCustom(500, fmt.Sprint(err), rest.ERROR))
 		}
-		store.DelCurrent(_const.CurrentHttpSessionUniqueKey)
+		store.DelCurrent(fmt.Sprint(&ctx))
 	}()
 	ctx.Next()
 }
