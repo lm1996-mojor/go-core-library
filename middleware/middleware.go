@@ -93,11 +93,16 @@ func RegisterMiddleWare(app *iris.Application) {
 
 // MiddleWare 中间件结构体
 type MiddleWare struct {
-	Handler         context.Handler // 中间件处理器
-	HandlerCnDesc   string          // 中间件处理器描述
-	HandlerEnDesc   string          // 中间件处理器英文描述
-	HandlerServer   string          // 中间件所属服务，用于解决所属服务在使用公共库时。不会重复注册中间件。
-	MiddleWareLevel int32           // 中间件等级(影响中间件运行顺序,数值越大，等级越小)
+	// 中间件处理器
+	Handler context.Handler
+	// 中间件处理器描述
+	HandlerCnDesc string
+	// 中间件处理器英文描述
+	HandlerEnDesc string
+	// 中间件所属服务，用于解决所属服务在使用公共库时。不会重复注册中间件。
+	HandlerServer string
+	// 中间件等级(影响中间件运行顺序,数值越大，等级越小)
+	MiddleWareLevel int32
 }
 
 // 全局化web中间件，先于其他中间件执行

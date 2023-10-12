@@ -10,7 +10,7 @@ const (
 	ClientTx                    = "_client_db_transaction"           // 租户带事务的数据源
 	MasterTx                    = "_master_db_transaction"           // 平台库带事务的数据源
 	CustomTx                    = "_custom_db_transaction"           // 自定义带事务数据库标识
-	JwtData                     = "_jwt_data"                        // 原token信息（解析后的）
+	JwtData                     = "_jwt_data"                        // 解析后的token信息
 	UserId                      = "_userId"                          // 用户id
 	UserCode                    = "_user_code"                       // 用户唯一编码获取key名称
 	ClientCode                  = "_client_code"                     // 租户唯一编码获取key名称

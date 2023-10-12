@@ -72,7 +72,7 @@ func CheckIdentity(ctx iris.Context) {
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserId, tokenClaims[_const.UserId].(string))
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserCode, tokenClaims[_const.UserCode].(string))
 		//将解析后的token中的用户信息存入local store
-		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.JwtData, tokenClaims["client_code"].(map[string]interface{}))
+		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.JwtData, tokenClaims[_const.JwtData].(map[string]interface{}))
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.TokenOriginal, token)
 		ctx.Next()
 	} else {
