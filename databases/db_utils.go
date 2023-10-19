@@ -97,6 +97,7 @@ func TransactionHandler(ctx iris.Context, err interface{}) {
 			} else {
 				tx.Rollback()
 			}
+			store.Del(key.(string))
 		}
 		return true
 	})
