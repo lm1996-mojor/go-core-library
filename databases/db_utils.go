@@ -2,6 +2,8 @@ package databases
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/kataras/iris/v12"
 	"github.com/lm1996-mojor/go-core-library/config"
@@ -85,14 +87,16 @@ func GetDbTxObjByDbName(ctx iris.Context, name string) (tx *gorm.DB) {
 //	transaction(ctx, _const.ClientTx, err)
 //}
 
-func TransactionHandler(err interface{}) {
-	values := store.GetValueByCondition("_db_")
+func TransactionHandler(ctx iris.Context, err interface{}) {
+	values := store.GetValueByCondition(fmt.Sprint(&ctx))
 	values.Range(func(key, value any) bool {
-		tx := value.(*gorm.DB)
-		if err == nil {
-			tx.Commit()
-		} else {
-			tx.Rollback()
+		if strings.Contains(key.(string), "_db_") {
+			tx := value.(*gorm.DB)
+			if err == nil {
+				tx.Commit()
+			} else {
+				tx.Rollback()
+			}
 		}
 		return true
 	})

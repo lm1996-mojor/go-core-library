@@ -14,10 +14,7 @@ import (
 func Recover(ctx iris.Context) {
 	defer func() {
 		err := recover()
-		//databases.DisposeCustomizedTx(ctx, err)
-		//databases.DisposeMasterDbTx(ctx, err)
-		//databases.DisposeClientTx(ctx, err)
-		databases.TransactionHandler(err)
+		databases.TransactionHandler(ctx, err)
 		if err != nil {
 			log.Error("服务器错误：" + fmt.Sprint(err))
 			ctx.JSON(rest.FailCustom(500, fmt.Sprint(err), rest.ERROR))
