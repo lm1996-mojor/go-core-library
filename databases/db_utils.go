@@ -2,7 +2,6 @@ package databases
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/kataras/iris/v12"
@@ -88,7 +87,7 @@ func GetDbTxObjByDbName(ctx iris.Context, name string) (tx *gorm.DB) {
 //}
 
 func TransactionHandler(ctx iris.Context, err interface{}) {
-	values := store.GetValueByCondition(fmt.Sprint(&ctx))
+	values := store.GetValueByCondition(http_session.GetCurrentHttpSessionUniqueKey(ctx))
 	values.Range(func(key, value any) bool {
 		if strings.Contains(key.(string), "_db_") {
 			tx := value.(*gorm.DB)
