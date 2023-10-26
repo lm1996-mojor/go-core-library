@@ -9,6 +9,7 @@ import (
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	dbLib "github.com/lm1996-mojor/go-core-library/databases"
 	"github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/store"
 
 	"gorm.io/gorm"
@@ -58,7 +59,7 @@ func ObtainClientDbTx(ctx iris.Context) (db *gorm.DB) {
 
 // ObtainClientId 获取当前的租户id
 func ObtainClientId(ctx iris.Context) (clientId int64, err error) {
-	value, ok := store.Get(fmt.Sprintf("%p", &ctx) + _const.ClientID)
+	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.ClientID)
 	if !ok {
 		return 0, errors.New("租户不确定")
 	}
