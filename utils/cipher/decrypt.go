@@ -2,26 +2,27 @@ package cipher
 
 import (
 	"crypto/aes"
-	"encoding/hex"
 )
 
-// DecryptAES AES解密
+// AesDecryptECB AES_ECB解密
 //
 // @Description 加密可以调用 cipher.EncryptAES(key , plainText) 函数
 //
-// @Param key "对称秘钥"
+// @Param []byte key "对称秘钥",必须要16/32位
 //
-// @Param plainText "需要解密的字符串"
-func DecryptAES(key string, encryptText string) (string, error) {
-	decodeText, _ := hex.DecodeString(encryptText)
-
-	cipher, err := aes.NewCipher([]byte(key))
-	if err != nil {
-		return "", err
+// @Param []byte encrypted "需要解密的字符串"
+func AesDecryptECB(encrypted []byte, key []byte) (decrypted []byte) {
+	cipher, _ := aes.NewCipher(generateKey(key))
+	decrypted = make([]byte, len(encrypted))
+	//
+	for bs, be := 0, cipher.BlockSize(); bs < len(encrypted); bs, be = bs+cipher.BlockSize(), be+cipher.BlockSize() {
+		cipher.Decrypt(decrypted[bs:be], encrypted[bs:be])
 	}
 
-	out := make([]byte, len(decodeText))
-	cipher.Decrypt(out, decodeText)
+	trim := 0
+	if len(decrypted) > 0 {
+		trim = len(decrypted) - int(decrypted[len(decrypted)-1])
+	}
 
-	return string(out[:]), nil
+	return decrypted[:trim]
 }

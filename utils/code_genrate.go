@@ -3,10 +3,11 @@ package utils
 import (
 	"strings"
 
+	"github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/rest/req"
 	"github.com/lm1996-mojor/go-core-library/utils/repo"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 // 编码前缀集
@@ -29,7 +30,13 @@ type CodePrefix struct {
 // 获取编码前缀
 func obtainCodePrefixText(codeType int) string {
 	PrefixStr := ""
-	repo.ObtainCustomDbByDbName("platform_management").Table("code_prefix").Where("id = ?", codeType).Select("prefix_str").Scan(&PrefixStr)
+	db := repo.ObtainCustomDbByDbName("platform_management")
+	if db != nil {
+		db.Table("code_prefix").Where("id = ?", codeType).Select("prefix_str").Scan(&PrefixStr)
+	} else {
+		log.Error("请配置platform_management数据库")
+		panic("服务器错误")
+	}
 	if PrefixStr == "" {
 		PrefixStr = "link_ease"
 	}
@@ -38,7 +45,7 @@ func obtainCodePrefixText(codeType int) string {
 
 // GenerateCodeByUUID 根据UUID生成编码
 func GenerateCodeByUUID(codeType int) (code string) {
-	uuId := uuid.NewV4()
+	uuId := uuid.New()
 	idStr := uuId.String()
 	idStr = strings.ToUpper(strings.ReplaceAll(idStr, "-", ""))
 	return obtainCodePrefixText(codeType) + idStr

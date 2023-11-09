@@ -1,27 +1,26 @@
 package recoverer
 
 import (
-	"github.com/lm1996-mojor/go-core-library/databases"
-	"github.com/lm1996-mojor/go-core-library/log"
-	"github.com/lm1996-mojor/go-core-library/rest"
-	"github.com/lm1996-mojor/go-core-library/store"
+	"fmt"
 
 	"github.com/kataras/iris/v12"
+	"github.com/lm1996-mojor/go-core-library/databases"
+	"github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
+	"github.com/lm1996-mojor/go-core-library/rest"
+	"github.com/lm1996-mojor/go-core-library/store"
 )
 
-// Recover middleware to recover the transaction
-// 统一事务处理,事务自动提交
+// Recover 统一错误处理中心
 func Recover(ctx iris.Context) {
 	defer func() {
 		err := recover()
-		databases.DisposeCustomizedTx(err)
-		databases.DisposeMasterDbTx(err)
-		databases.DisposeClientTx(err)
+		databases.TransactionHandler(ctx, err)
 		if err != nil {
-			log.Error("服务器错误：" + err.(error).Error())
-			ctx.JSON(rest.FailCustom(500, err.(error).Error(), rest.ERROR))
+			log.Error("服务器错误：" + fmt.Sprint(err))
+			ctx.JSON(rest.FailCustom(500, fmt.Sprint(err), rest.ERROR))
 		}
-		store.Clean()
+		store.DelCurrent(http_session.GetCurrentHttpSessionUniqueKey(ctx))
 	}()
 	ctx.Next()
 }

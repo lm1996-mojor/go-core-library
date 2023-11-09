@@ -7,12 +7,13 @@ import (
 	"github.com/lm1996-mojor/go-core-library/config"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
+	cors "github.com/lm1996-mojor/go-core-library/middleware/cors_handler"
+	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/middleware/recoverer"
+	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/token"
 
 	"github.com/kataras/iris/v12"
-
-	cors "github.com/lm1996-mojor/go-core-library/middleware/cors_handler"
 
 	"github.com/kataras/iris/v12/context"
 )
@@ -22,8 +23,21 @@ const (
 	recoverMiddlewareName = "err_recover"
 )
 
+const runLevel = 9
+
+func init() {
+	global.RegisterInit(global.Initiator{Action: Init, Level: runLevel})
+}
+
 // Init 中间件初始化
 func Init(app *iris.Application) {
+	// 初始化白名单
+	white_list.Init()
+	// 注册中间件
+	RegisterMiddleWare(app)
+}
+
+func RegisterMiddleWare(app *iris.Application) {
 	app.Configure(iris.WithOptimizations)
 	// 关闭token检测
 	if !config.Sysconfig.Detection.Token {
@@ -50,12 +64,13 @@ func Init(app *iris.Application) {
 	clog.Info("中间件中心注册中间件中.....")
 
 	if len(globalMiddleWares) > 0 {
-		// 按照等级排序: 降序
+		// 按照等级排序: 升序
 		sort.Slice(globalMiddleWares, func(i, j int) bool {
-			return globalMiddleWares[i].MiddleWareLevel > globalMiddleWares[j].MiddleWareLevel
+			return globalMiddleWares[i].MiddleWareLevel < globalMiddleWares[j].MiddleWareLevel
 		})
 		// 注册中间件
 		for _, ware := range globalMiddleWares {
+			clog.Info(ware.HandlerCnDesc + "注册中...")
 			app.UseGlobal(ware.Handler)
 		}
 	} else {
@@ -67,6 +82,7 @@ func Init(app *iris.Application) {
 			return globalMiddleWares[i].MiddleWareLevel > globalMiddleWares[j].MiddleWareLevel
 		})
 		for _, smd := range singleMiddleWares {
+			clog.Info(smd.HandlerCnDesc + "注册中...")
 			app.Use(smd.Handler)
 		}
 	} else {
@@ -77,17 +93,23 @@ func Init(app *iris.Application) {
 
 // MiddleWare 中间件结构体
 type MiddleWare struct {
-	Handler         context.Handler // 中间件处理器
-	HandlerCnDesc   string          // 中间件处理器描述
-	HandlerEnDesc   string          // 中间件处理器英文描述
-	HandlerServer   string          // 中间件所属服务，用于解决所属服务在使用公共库时。不会重复注册中间件。
-	MiddleWareLevel int32           // 中间件等级(影响中间件运行顺序,数值越大，等级越高)
+	// 中间件处理器
+	Handler context.Handler
+	// 中间件处理器描述
+	HandlerCnDesc string
+	// 中间件处理器英文描述
+	HandlerEnDesc string
+	// 中间件所属服务，用于解决所属服务在使用公共库时。不会重复注册中间件。
+	HandlerServer string
+	// 中间件等级(影响中间件运行顺序,数值越大，等级越小)
+	MiddleWareLevel int32
 }
 
 // 全局化web中间件，先于其他中间件执行
 var globalMiddleWares = []MiddleWare{
-	{token.CheckIdentity, "token检查", tokenMiddlewareName, "global", 100},
-	{recoverer.Recover, "统一错误处理，同时处理数据库事务", recoverMiddlewareName, "global", 1},
+	{http_session.SetCurrentHttpSessionUniqueKey, "设置当前会话唯一key", "current_http_session_unique_key", "global", 1},
+	{recoverer.Recover, "统一错误处理", "err_recover", "global", 2},
+	{token.CheckIdentity, "token检查", "token_check", "global", 100},
 }
 
 // web中间件，比global中间件晚运行
@@ -133,10 +155,4 @@ func AppendGlobalMiddleWares(item []MiddleWare) {
 		}
 	}
 	globalMiddleWares = append(globalMiddleWares, item...)
-}
-
-const runLevel = 9
-
-func init() {
-	global.RegisterInit(global.Initiator{Action: Init, Level: runLevel})
 }

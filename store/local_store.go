@@ -1,16 +1,18 @@
 package store
 
 import (
+	"strings"
 	"sync"
 )
 
 var storeMap sync.Map
-var PoInterKey = MapPoInterKey{}
 
-type MapPoInterKey struct {
-	UserId   string
-	ClientId string
-}
+//var PoInterKey = MapPoInterKey{}
+//
+//type MapPoInterKey struct {
+//	UserId   string
+//	ClientId string
+//}
 
 // Set store value
 func Set(key string, value interface{}) {
@@ -29,19 +31,40 @@ func Get(key string) (value interface{}, ok bool) {
 	return
 }
 
+func GetValueByCondition(conditionStr string) (localStoreMap sync.Map) {
+	storeMap.Range(func(key, value any) bool {
+		if strings.Contains(key.(string), conditionStr) {
+			localStoreMap.Store(key, value)
+			Del(key.(string))
+		}
+		return true
+	})
+	return
+}
+
 // Del delete value by key
-func Del(key interface{}) {
+func Del(key string) {
 	//tls.Del(key)
 	storeMap.Delete(key)
 }
 
-// Clean empty local map
-func Clean() {
-	storeMap.Range(walk)
+func DelCurrent(currentPrefix string) {
+	storeMap.Range(func(key, value any) bool {
+		split := strings.Split(key.(string), "_")
+		if currentPrefix == split[0] {
+			storeMap.Delete(key)
+		}
+		return true
+	})
+}
+
+// CleanAll empty local map
+func CleanAll() {
+	storeMap.Range(walkAll)
 }
 
 // 删除并带检测
-func walk(key, value interface{}) bool {
+func walkAll(key, value interface{}) bool {
 	storeMap.Delete(key)
 	_, ok := storeMap.Load(key)
 	return !ok
