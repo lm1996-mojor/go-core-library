@@ -28,6 +28,11 @@ func ObtainCustomTxDbByDbName(ctx iris.Context, dbName string) (tx *gorm.DB) {
 	return dbLib.GetCustomDbTxByDbName(ctx, dbName)
 }
 
+// ObtainDb 获取数据源
+//
+// @Param ctx http会话对象
+//
+// @Param txFlag 是否获取带事务的数据源标识（true 是  false 否）
 func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
 	clientId, err := ObtainClientId(ctx)
 	if err != nil {
