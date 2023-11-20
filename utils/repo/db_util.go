@@ -29,39 +29,35 @@ func ObtainCustomTxDbByDbName(ctx iris.Context, dbName string) (tx *gorm.DB) {
 }
 
 func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
-	if config.Sysconfig.SystemEnv.Env == "prod" {
+	clientId, err := ObtainClientId(ctx)
+	if err != nil {
+		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
+		panic("服务器错误")
+	}
+	// 判断是否需要进入租户库
+	if clientId <= 0 {
 		if txFlag {
-			return ObtainClientDbTx(ctx)
+			return dbLib.GetDbByName("platform_management")
 		} else {
-			return ObtainClientDb(ctx)
+			return dbLib.GetCustomDbTxByDbName(ctx, "platform_management")
 		}
 	} else {
-		if txFlag {
-			return dbLib.GetDbByName("")
+		if config.Sysconfig.SystemEnv.Env == "prod" && config.Sysconfig.DataBases.ClientEnable {
+			clientIdStr := fmt.Sprintf("%d", clientId)
+			if txFlag {
+				return dbLib.GetClientDbTX(ctx, clientIdStr)
+			} else {
+				return dbLib.GetDbByName(clientIdStr)
+			}
+
 		} else {
-			return dbLib.GetMasterDbTx(ctx)
+			if txFlag {
+				return dbLib.GetDbByName("")
+			} else {
+				return dbLib.GetMasterDbTx(ctx)
+			}
 		}
 	}
-}
-
-// ObtainClientDb 获取常规动态租户数据源
-func ObtainClientDb(ctx iris.Context) (db *gorm.DB) {
-	clientId, err := ObtainClientId(ctx)
-	if err != nil {
-		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
-		panic("服务器错误")
-	}
-	return dbLib.GetDbByName(fmt.Sprintf("%d", clientId))
-}
-
-// ObtainClientDbTx 获取带事务的动态租户数据源
-func ObtainClientDbTx(ctx iris.Context) (db *gorm.DB) {
-	clientId, err := ObtainClientId(ctx)
-	if err != nil {
-		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
-		panic("服务器错误")
-	}
-	return dbLib.GetClientDbTX(ctx, fmt.Sprintf("%d", clientId))
 }
 
 // ObtainClientId 获取当前的租户id
