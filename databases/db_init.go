@@ -65,7 +65,7 @@ func init() {
 
 // Init 初始化数据库信息实现方法
 func Init(app *iris.Application) {
-	if config.Sysconfig.DataBases.ClientDbEnable {
+	if config.Sysconfig.DataBases.ClientEnable {
 		initClientDB()
 	}
 	initCustomizedDB() //初始化自定义数据库信息
