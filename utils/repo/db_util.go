@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/kataras/iris/v12"
+	"github.com/lm1996-mojor/go-core-library/config"
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	dbLib "github.com/lm1996-mojor/go-core-library/databases"
 	"github.com/lm1996-mojor/go-core-library/log"
@@ -27,14 +28,20 @@ func ObtainCustomTxDbByDbName(ctx iris.Context, dbName string) (tx *gorm.DB) {
 	return dbLib.GetCustomDbTxByDbName(ctx, dbName)
 }
 
-// ObtainMasterDb 获取常规主数据源
-func ObtainMasterDb() (db *gorm.DB) {
-	return dbLib.GetDbByName("")
-}
-
-// ObtainMasterDbTx 获取带事务的数据源
-func ObtainMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
-	return dbLib.GetMasterDbTx(ctx)
+func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
+	if config.Sysconfig.SystemEnv.Env == "prod" {
+		if txFlag {
+			return ObtainClientDbTx(ctx)
+		} else {
+			return ObtainClientDb(ctx)
+		}
+	} else {
+		if txFlag {
+			return dbLib.GetDbByName("")
+		} else {
+			return dbLib.GetMasterDbTx(ctx)
+		}
+	}
 }
 
 // ObtainClientDb 获取常规动态租户数据源
