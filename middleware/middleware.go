@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/middleware/requestid"
 	"github.com/lm1996-mojor/go-core-library/config"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
@@ -34,6 +35,7 @@ func Init(app *iris.Application) {
 
 func RegisterMiddleWare(app *iris.Application) {
 	app.Configure(iris.WithOptimizations)
+	app.UseGlobal(requestid.New(requestid.DefaultGenerator))
 	tempSlice := make([]MiddleWare, 0)
 
 	for _, middleWare := range globalMiddleWares {
