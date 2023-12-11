@@ -10,17 +10,14 @@ import (
 	cors "github.com/lm1996-mojor/go-core-library/middleware/cors_handler"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/middleware/recoverer"
+	"github.com/lm1996-mojor/go-core-library/middleware/security/auth"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/token"
+	"github.com/lm1996-mojor/go-core-library/middleware/session_data_handler"
 
 	"github.com/kataras/iris/v12"
 
 	"github.com/kataras/iris/v12/context"
-)
-
-const (
-	tokenMiddlewareName   = "token_check"
-	recoverMiddlewareName = "err_recover"
 )
 
 const runLevel = 9
@@ -43,7 +40,15 @@ func RegisterMiddleWare(app *iris.Application) {
 	if !config.Sysconfig.Detection.Token {
 		tempSlice := make([]MiddleWare, 0)
 		for _, middleWare := range globalMiddleWares {
-			if middleWare.HandlerEnDesc != tokenMiddlewareName {
+			if middleWare.HandlerEnDesc != "token_check" {
+				tempSlice = append(tempSlice, middleWare)
+			}
+		}
+		globalMiddleWares = tempSlice
+	} else {
+		tempSlice := make([]MiddleWare, 0)
+		for _, middleWare := range globalMiddleWares {
+			if middleWare.HandlerEnDesc != "session_data_init" {
 				tempSlice = append(tempSlice, middleWare)
 			}
 		}
@@ -77,9 +82,9 @@ func RegisterMiddleWare(app *iris.Application) {
 		clog.Info("没有全局中间件，无需处理")
 	}
 	if len(singleMiddleWares) > 0 {
-		// 按照等级排序: 降序
+		// 按照等级排序: 升序
 		sort.Slice(globalMiddleWares, func(i, j int) bool {
-			return globalMiddleWares[i].MiddleWareLevel > globalMiddleWares[j].MiddleWareLevel
+			return globalMiddleWares[i].MiddleWareLevel < globalMiddleWares[j].MiddleWareLevel
 		})
 		for _, smd := range singleMiddleWares {
 			clog.Info(smd.HandlerCnDesc + "注册中...")
@@ -104,8 +109,9 @@ type MiddleWare struct {
 var globalMiddleWares = []MiddleWare{
 	{http_session.SetCurrentHttpSessionUniqueKey, "设置当前会话唯一key(固定插件)", "current_http_session_unique_key", "global", 1},
 	{recoverer.Recover, "统一错误处理(固定插件)", "err_recover", "global", 2},
-	{token.CheckIdentity, "token检查(固定插件)", "token_check", "global", 100},
-	{token.CheckIdentity, "权限检查(固定插件)", "auth_check", "global", 99},
+	{session_data_handler.SessionDataInit, "会话数据初始化(固定插件)", "session_data_init", "global", 3},
+	{token.CheckIdentity, "token检查(固定插件)", "token_check", "global", 99},
+	{auth.Verify, "权限检查(固定插件)", "auth_check", "global", 100},
 }
 
 // web中间件，比global中间件晚运行
