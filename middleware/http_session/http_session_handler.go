@@ -6,5 +6,6 @@ import (
 
 // GetCurrentHttpSessionUniqueKey 根据ConstValue获取key
 func GetCurrentHttpSessionUniqueKey(ctx iris.Context) string {
-	return ctx.GetID().(string)
+	sessionId := ctx.GetID().(string)
+	return sessionId
 }
