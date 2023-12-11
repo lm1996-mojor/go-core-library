@@ -36,8 +36,8 @@ func Init(app *iris.Application) {
 func RegisterMiddleWare(app *iris.Application) {
 	app.Configure(iris.WithOptimizations)
 	app.UseGlobal(requestid.New(requestid.DefaultGenerator))
-	tempSlice := make([]MiddleWare, 0)
 
+	tempSlice := make([]MiddleWare, 0)
 	for _, middleWare := range globalMiddleWares {
 		// 关闭token检测
 		if !config.Sysconfig.Detection.Token {
@@ -51,6 +51,9 @@ func RegisterMiddleWare(app *iris.Application) {
 				continue
 			}
 		}
+	}
+	globalMiddleWares = tempSlice
+	for _, middleWare := range globalMiddleWares {
 		// 关闭权限检测
 		if !config.Sysconfig.Detection.Authentication {
 			if middleWare.HandlerEnDesc != "authentication" {
@@ -59,6 +62,7 @@ func RegisterMiddleWare(app *iris.Application) {
 		}
 	}
 	globalMiddleWares = tempSlice
+
 	// 配置跨域处理
 	cors.InitCors(app)
 	clog.Info("中间件中心注册中间件中.....")
