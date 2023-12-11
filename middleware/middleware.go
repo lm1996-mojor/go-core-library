@@ -50,15 +50,15 @@ func RegisterMiddleWare(app *iris.Application) {
 		globalMiddleWares = tempSlice
 	}
 	// 关闭鉴权检测
-	//if !config.Sysconfig.Detection.Authentication {
-	//	tempSlice := make([]MiddleWare, 0)
-	//	for _, middleWare := range globalMiddleWares {
-	//		if middleWare.HandlerEnDesc != "authentication" {
-	//			tempSlice = append(tempSlice, middleWare)
-	//		}
-	//	}
-	//	globalMiddleWares = tempSlice
-	//}
+	if !config.Sysconfig.Detection.Authentication {
+		tempSlice := make([]MiddleWare, 0)
+		for _, middleWare := range globalMiddleWares {
+			if middleWare.HandlerEnDesc != "authentication" {
+				tempSlice = append(tempSlice, middleWare)
+			}
+		}
+		globalMiddleWares = tempSlice
+	}
 	// 配置跨域处理
 	cors.InitCors(app)
 	clog.Info("中间件中心注册中间件中.....")
@@ -93,23 +93,19 @@ func RegisterMiddleWare(app *iris.Application) {
 
 // MiddleWare 中间件结构体
 type MiddleWare struct {
-	// 中间件处理器
-	Handler context.Handler
-	// 中间件处理器描述
-	HandlerCnDesc string
-	// 中间件处理器英文描述
-	HandlerEnDesc string
-	// 中间件所属服务，用于解决所属服务在使用公共库时。不会重复注册中间件。
-	HandlerServer string
-	// 中间件等级(影响中间件运行顺序,数值越大，等级越小)
-	MiddleWareLevel int32
+	Handler         context.Handler // 中间件处理器
+	HandlerCnDesc   string          // 中间件处理器描述
+	HandlerEnDesc   string          // 中间件处理器英文描述
+	HandlerServer   string          // 中间件所属服务，用于解决所属服务在使用公共库时。不会重复注册中间件。
+	MiddleWareLevel int32           // 中间件等级(影响中间件运行顺序,数值越大，等级越小)
 }
 
 // 全局化web中间件，先于其他中间件执行
 var globalMiddleWares = []MiddleWare{
-	{http_session.SetCurrentHttpSessionUniqueKey, "设置当前会话唯一key", "current_http_session_unique_key", "global", 1},
-	{recoverer.Recover, "统一错误处理", "err_recover", "global", 2},
-	{token.CheckIdentity, "token检查", "token_check", "global", 100},
+	{http_session.SetCurrentHttpSessionUniqueKey, "设置当前会话唯一key(固定插件)", "current_http_session_unique_key", "global", 1},
+	{recoverer.Recover, "统一错误处理(固定插件)", "err_recover", "global", 2},
+	{token.CheckIdentity, "token检查(固定插件)", "token_check", "global", 100},
+	{token.CheckIdentity, "权限检查(固定插件)", "auth_check", "global", 99},
 }
 
 // web中间件，比global中间件晚运行

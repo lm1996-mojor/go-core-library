@@ -37,10 +37,9 @@ func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
 	clientId, err := ObtainClientId(ctx)
 	if err != nil {
 		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
-		panic("服务器错误")
 	}
 	// 判断是否需要进入租户库
-	if clientId <= 0 {
+	if clientId < 0 {
 		if txFlag {
 			return dbLib.GetDbByName("platform_management")
 		} else {
@@ -54,7 +53,6 @@ func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
 			} else {
 				return dbLib.GetDbByName(clientIdStr)
 			}
-
 		} else {
 			if txFlag {
 				return dbLib.GetDbByName("")

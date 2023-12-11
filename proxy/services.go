@@ -64,7 +64,7 @@ func remoteRequestHandler(reqMdl *RemoteReqMdl, respParam *map[string]interface{
 	reqMdl.Method = strings.ToUpper(reqMdl.Method)
 	//将请求数据转为二进制数组
 	var reader *bytes.Reader
-	if len(reqMdl.ReqParam) > 0 {
+	if reqMdl.ReqParam != nil || len(reqMdl.ReqParam) > 0 {
 		reader = bytes.NewReader(reqMdl.ReqParam)
 	} else {
 		reader = nil

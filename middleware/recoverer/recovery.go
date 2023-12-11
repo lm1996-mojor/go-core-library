@@ -18,7 +18,7 @@ func Recover(ctx iris.Context) {
 		databases.TransactionHandler(ctx, err)
 		if err != nil {
 			log.Error("服务器错误：" + fmt.Sprint(err))
-			ctx.JSON(rest.FailCustom(500, fmt.Sprint(err), rest.ERROR))
+			ctx.JSON(rest.FailCustom(500, "服务器开小差了，请稍后再试", rest.ERROR))
 		}
 		store.DelCurrent(http_session.GetCurrentHttpSessionUniqueKey(ctx))
 	}()

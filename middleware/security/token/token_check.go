@@ -65,6 +65,8 @@ func CheckIdentity(ctx iris.Context) {
 			ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
 			return
 		}
+		// 用于判断是否为超级管理员，主要用在鉴权时是否需要走权限系统
+		ctx.Values().Set("isSuperAdmin", tokenClaims["isSuperAdmin"])
 		// 以下所有数据都会在单次回话完成后进行清空
 		//将从token中获取到的租户id存入tls中，用于动态数据源
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientID, tokenClaims[_const.ClientID].(string))
