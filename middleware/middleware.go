@@ -9,11 +9,11 @@ import (
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
 	cors "github.com/lm1996-mojor/go-core-library/middleware/cors_handler"
-	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/middleware/recoverer"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/auth"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/token"
+	"github.com/lm1996-mojor/go-core-library/middleware/session_data_handler"
 
 	"github.com/kataras/iris/v12/context"
 )
@@ -34,35 +34,29 @@ func Init(app *iris.Application) {
 
 func RegisterMiddleWare(app *iris.Application) {
 	app.Configure(iris.WithOptimizations)
-	// 关闭token检测
-	if !config.Sysconfig.Detection.Token {
-		tempSlice := make([]MiddleWare, 0)
-		for _, middleWare := range globalMiddleWares {
+	tempSlice := make([]MiddleWare, 0)
+
+	for _, middleWare := range globalMiddleWares {
+		// 关闭token检测
+		if !config.Sysconfig.Detection.Token {
 			if middleWare.HandlerEnDesc != "token_check" {
 				tempSlice = append(tempSlice, middleWare)
+				continue
+			}
+		} else {
+			if middleWare.HandlerEnDesc != "session_data_init" {
+				tempSlice = append(tempSlice, middleWare)
+				continue
 			}
 		}
-		globalMiddleWares = tempSlice
-	}
-	//else {
-	//	tempSlice := make([]MiddleWare, 0)
-	//	for _, middleWare := range globalMiddleWares {
-	//		if middleWare.HandlerEnDesc != "session_data_init" {
-	//			tempSlice = append(tempSlice, middleWare)
-	//		}
-	//	}
-	//	globalMiddleWares = tempSlice
-	//}
-	// 关闭鉴权检测
-	if !config.Sysconfig.Detection.Authentication {
-		tempSlice := make([]MiddleWare, 0)
-		for _, middleWare := range globalMiddleWares {
+		// 关闭权限检测
+		if !config.Sysconfig.Detection.Authentication {
 			if middleWare.HandlerEnDesc != "authentication" {
 				tempSlice = append(tempSlice, middleWare)
 			}
 		}
-		globalMiddleWares = tempSlice
 	}
+	globalMiddleWares = tempSlice
 	// 配置跨域处理
 	cors.InitCors(app)
 	clog.Info("中间件中心注册中间件中.....")
@@ -106,9 +100,8 @@ type MiddleWare struct {
 
 // 全局化web中间件，先于其他中间件执行
 var globalMiddleWares = []MiddleWare{
-	{http_session.SetCurrentHttpSessionUniqueKey, "设置当前会话唯一key(固定插件)", "current_http_session_unique_key", "global", 1},
-	{recoverer.Recover, "统一错误处理(固定插件)", "err_recover", "global", 2},
-	//{session_data_handler.SessionDataInit, "会话数据初始化(固定插件)", "session_data_init", "global", 3},
+	{recoverer.Recover, "统一错误处理(固定插件)", "err_recover", "global", 1},
+	{session_data_handler.SessionDataInit, "会话数据初始化(固定插件)", "session_data_init", "global", 2},
 	{token.CheckIdentity, "token检查(固定插件)", "token_check", "global", 99},
 	{auth.Verify, "权限检查(固定插件)", "auth_check", "global", 100},
 }
