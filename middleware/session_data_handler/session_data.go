@@ -12,4 +12,5 @@ func SessionDataInit(ctx iris.Context) {
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientCode, "0")
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserId, "0")
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserCode, "0")
+	ctx.Next()
 }
