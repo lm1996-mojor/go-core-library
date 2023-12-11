@@ -4,6 +4,7 @@ import (
 	"errors"
 	"sort"
 
+	"github.com/kataras/iris/v12"
 	"github.com/lm1996-mojor/go-core-library/config"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
@@ -13,9 +14,6 @@ import (
 	"github.com/lm1996-mojor/go-core-library/middleware/security/auth"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/token"
-	"github.com/lm1996-mojor/go-core-library/middleware/session_data_handler"
-
-	"github.com/kataras/iris/v12"
 
 	"github.com/kataras/iris/v12/context"
 )
@@ -45,15 +43,16 @@ func RegisterMiddleWare(app *iris.Application) {
 			}
 		}
 		globalMiddleWares = tempSlice
-	} else {
-		tempSlice := make([]MiddleWare, 0)
-		for _, middleWare := range globalMiddleWares {
-			if middleWare.HandlerEnDesc != "session_data_init" {
-				tempSlice = append(tempSlice, middleWare)
-			}
-		}
-		globalMiddleWares = tempSlice
 	}
+	//else {
+	//	tempSlice := make([]MiddleWare, 0)
+	//	for _, middleWare := range globalMiddleWares {
+	//		if middleWare.HandlerEnDesc != "session_data_init" {
+	//			tempSlice = append(tempSlice, middleWare)
+	//		}
+	//	}
+	//	globalMiddleWares = tempSlice
+	//}
 	// 关闭鉴权检测
 	if !config.Sysconfig.Detection.Authentication {
 		tempSlice := make([]MiddleWare, 0)
@@ -109,7 +108,7 @@ type MiddleWare struct {
 var globalMiddleWares = []MiddleWare{
 	{http_session.SetCurrentHttpSessionUniqueKey, "设置当前会话唯一key(固定插件)", "current_http_session_unique_key", "global", 1},
 	{recoverer.Recover, "统一错误处理(固定插件)", "err_recover", "global", 2},
-	{session_data_handler.SessionDataInit, "会话数据初始化(固定插件)", "session_data_init", "global", 3},
+	//{session_data_handler.SessionDataInit, "会话数据初始化(固定插件)", "session_data_init", "global", 3},
 	{token.CheckIdentity, "token检查(固定插件)", "token_check", "global", 99},
 	{auth.Verify, "权限检查(固定插件)", "auth_check", "global", 100},
 }
