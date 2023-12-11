@@ -38,6 +38,11 @@ func RegisterMiddleWare(app *iris.Application) {
 	app.UseGlobal(requestid.New(requestid.DefaultGenerator))
 
 	tempSlice := make([]MiddleWare, 0)
+	if !config.Sysconfig.Detection.Token {
+
+	} else {
+
+	}
 	for _, middleWare := range globalMiddleWares {
 		// 关闭token检测
 		if !config.Sysconfig.Detection.Token {
@@ -56,8 +61,14 @@ func RegisterMiddleWare(app *iris.Application) {
 	for _, middleWare := range globalMiddleWares {
 		// 关闭权限检测
 		if !config.Sysconfig.Detection.Authentication {
-			if middleWare.HandlerEnDesc != "authentication" {
-				tempSlice = append(tempSlice, middleWare)
+			if middleWare.HandlerEnDesc != "auth_check" {
+				for _, ware := range tempSlice {
+					if ware.HandlerEnDesc == middleWare.HandlerEnDesc {
+						break
+					} else {
+						tempSlice = append(tempSlice, middleWare)
+					}
+				}
 			}
 		}
 	}
@@ -73,21 +84,21 @@ func RegisterMiddleWare(app *iris.Application) {
 			return globalMiddleWares[i].MiddleWareLevel < globalMiddleWares[j].MiddleWareLevel
 		})
 		// 注册中间件
-		for _, ware := range globalMiddleWares {
-			clog.Info(ware.HandlerCnDesc + "注册中...")
-			app.UseGlobal(ware.Handler)
+		for i := 0; i < len(globalMiddleWares); i++ {
+			clog.Info(globalMiddleWares[i].HandlerCnDesc + "注册中...")
+			app.UseGlobal(globalMiddleWares[i].Handler)
 		}
 	} else {
 		clog.Info("没有全局中间件，无需处理")
 	}
 	if len(singleMiddleWares) > 0 {
 		// 按照等级排序: 升序
-		sort.Slice(globalMiddleWares, func(i, j int) bool {
-			return globalMiddleWares[i].MiddleWareLevel < globalMiddleWares[j].MiddleWareLevel
+		sort.Slice(singleMiddleWares, func(i, j int) bool {
+			return singleMiddleWares[i].MiddleWareLevel < singleMiddleWares[j].MiddleWareLevel
 		})
-		for _, smd := range singleMiddleWares {
-			clog.Info(smd.HandlerCnDesc + "注册中...")
-			app.Use(smd.Handler)
+		for i := 0; i < len(singleMiddleWares); i++ {
+			clog.Info(singleMiddleWares[i].HandlerCnDesc + "注册中...")
+			app.UseGlobal(singleMiddleWares[i].Handler)
 		}
 	} else {
 		clog.Info("没有个体中间件，无需处理")
