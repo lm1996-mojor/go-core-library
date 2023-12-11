@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/kataras/iris/v12"
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	clog "github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
@@ -11,14 +12,13 @@ import (
 	"github.com/lm1996-mojor/go-core-library/proxy"
 	"github.com/lm1996-mojor/go-core-library/rest"
 	"github.com/lm1996-mojor/go-core-library/store"
-
-	"github.com/kataras/iris/v12"
+	"github.com/lm1996-mojor/go-core-library/utils"
 )
 
 func CheckIdentity(ctx iris.Context) {
 	//获取请求路径
+	utils.PrintCallerInfo(ctx)
 	reqPath := ctx.Path()
-	clog.Info("请求路径: " + reqPath)
 	ctx.Values().Set("pass_label", "N")
 	if white_list.InList(reqPath, 1) {
 		ctx.Values().Set("pass_label", "Y")

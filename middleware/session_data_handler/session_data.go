@@ -5,6 +5,7 @@ import (
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/store"
+	"github.com/lm1996-mojor/go-core-library/utils"
 )
 
 func SessionDataInit(ctx iris.Context) {
@@ -12,5 +13,6 @@ func SessionDataInit(ctx iris.Context) {
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientCode, "0")
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserId, "0")
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserCode, "0")
+	utils.PrintCallerInfo(ctx)
 	ctx.Next()
 }
