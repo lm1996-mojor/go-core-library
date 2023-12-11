@@ -159,13 +159,3 @@ func AppendGlobalMiddleWares(item []MiddleWare) {
 	}
 	globalMiddleWares = append(globalMiddleWares, item...)
 }
-
-func closeMiddleWares(srcData []MiddleWare, closeKey string) (returnData []MiddleWare) {
-	index := -1
-	for i := 0; i < len(srcData); i++ {
-		if srcData[i].HandlerEnDesc == closeKey {
-			index = i
-		}
-	}
-
-}
