@@ -35,44 +35,36 @@ func Init(app *iris.Application) {
 
 func RegisterMiddleWare(app *iris.Application) {
 	app.Configure(iris.WithOptimizations)
+	// 配置会话id
 	app.UseGlobal(requestid.New(requestid.DefaultGenerator))
-
-	tempSlice := make([]MiddleWare, 0)
+	// 根据情况选定使用哪个中间件（token 和 会话数据初始化）
 	if !config.Sysconfig.Detection.Token {
-
+		tempSlice := make([]MiddleWare, 0)
+		for _, ware := range globalMiddleWares {
+			if ware.HandlerEnDesc != "token_check" {
+				tempSlice = append(tempSlice, ware)
+			}
+		}
+		globalMiddleWares = tempSlice
 	} else {
-
-	}
-	for _, middleWare := range globalMiddleWares {
-		// 关闭token检测
-		if !config.Sysconfig.Detection.Token {
-			if middleWare.HandlerEnDesc != "token_check" {
-				tempSlice = append(tempSlice, middleWare)
-				continue
-			}
-		} else {
-			if middleWare.HandlerEnDesc != "session_data_init" {
-				tempSlice = append(tempSlice, middleWare)
-				continue
+		tempSlice := make([]MiddleWare, 0)
+		for _, ware := range globalMiddleWares {
+			if ware.HandlerEnDesc != "session_data_init" {
+				tempSlice = append(tempSlice, ware)
 			}
 		}
+		globalMiddleWares = tempSlice
 	}
-	globalMiddleWares = tempSlice
-	for _, middleWare := range globalMiddleWares {
-		// 关闭权限检测
-		if !config.Sysconfig.Detection.Authentication {
-			if middleWare.HandlerEnDesc != "auth_check" {
-				for _, ware := range tempSlice {
-					if ware.HandlerEnDesc == middleWare.HandlerEnDesc {
-						break
-					} else {
-						tempSlice = append(tempSlice, middleWare)
-					}
-				}
+	// 关闭权限检测
+	if !config.Sysconfig.Detection.Authentication {
+		tempSlice := make([]MiddleWare, 0)
+		for _, ware := range globalMiddleWares {
+			if ware.HandlerEnDesc != "auth_check" {
+				tempSlice = append(tempSlice, ware)
 			}
 		}
+		globalMiddleWares = tempSlice
 	}
-	globalMiddleWares = tempSlice
 
 	// 配置跨域处理
 	cors.InitCors(app)
@@ -166,4 +158,14 @@ func AppendGlobalMiddleWares(item []MiddleWare) {
 		}
 	}
 	globalMiddleWares = append(globalMiddleWares, item...)
+}
+
+func closeMiddleWares(srcData []MiddleWare, closeKey string) (returnData []MiddleWare) {
+	index := -1
+	for i := 0; i < len(srcData); i++ {
+		if srcData[i].HandlerEnDesc == closeKey {
+			index = i
+		}
+	}
+
 }
