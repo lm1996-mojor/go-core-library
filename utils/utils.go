@@ -74,7 +74,7 @@ func ObtainClientId(ctx iris.Context) (clientId int64, err error) {
 // PrintCallerInfo 打印访问者简单信息
 func PrintCallerInfo(ctx iris.Context) {
 	callerName := ""
-	split := strings.Split(ctx.Host(), ":")
+	split := strings.Split(ctx.RemoteAddr(), ":")
 	if len(split) < 0 {
 		callerName = "未知"
 	} else {
