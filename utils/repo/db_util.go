@@ -28,6 +28,36 @@ func ObtainCustomTxDbByDbName(ctx iris.Context, dbName string) (tx *gorm.DB) {
 	return dbLib.GetCustomDbTxByDbName(ctx, dbName)
 }
 
+// ObtainMasterDb 获取常规主数据源
+func ObtainMasterDb() (db *gorm.DB) {
+	return dbLib.GetDbByName("")
+}
+
+// ObtainMasterDbTx 获取带事务的数据源
+func ObtainMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
+	return dbLib.GetMasterDbTx(ctx)
+}
+
+// ObtainClientDb 获取常规动态租户数据源
+func ObtainClientDb(ctx iris.Context) (db *gorm.DB) {
+	clientId, err := ObtainClientId(ctx)
+	if err != nil {
+		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
+		panic("服务器错误")
+	}
+	return dbLib.GetDbByName(fmt.Sprintf("%d", clientId))
+}
+
+// ObtainClientDbTx 获取带事务的动态租户数据源
+func ObtainClientDbTx(ctx iris.Context) (db *gorm.DB) {
+	clientId, err := ObtainClientId(ctx)
+	if err != nil {
+		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
+		panic("服务器错误")
+	}
+	return dbLib.GetClientDbTX(ctx, fmt.Sprintf("%d", clientId))
+}
+
 // ObtainDb 获取数据源
 //
 // @Param ctx http会话对象
