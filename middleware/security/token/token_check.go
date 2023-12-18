@@ -28,8 +28,12 @@ func CheckIdentity(ctx iris.Context) {
 	//获取token
 	author := ctx.GetHeader(_const.TokenName)
 	if author == "" {
-		ctx.JSON(rest.FailCustom(401, "尚未登录,请登录后再进行操作", rest.ERROR))
-		return
+		// 如果为webSocket请求
+		author = ctx.GetHeader(_const.WebSocketTokenStoreHttpRequestHeaderName)
+		if author == "" {
+			ctx.JSON(rest.FailCustom(401, "尚未登录,请登录后再进行操作", rest.ERROR))
+			return
+		}
 	}
 
 	//去除token 头部信息
