@@ -23,12 +23,12 @@ func GetDbByName(key string) (db *gorm.DB) {
 // ---------- 自定义数据源处理代码块 ----------------
 
 func GetCustomDbTxByDbName(ctx iris.Context, name string) (tx *gorm.DB) {
-	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.CustomTx)
+	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.CustomTx + name)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
 		tx = GetDbByName(name).Begin()
-		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.CustomTx, tx)
+		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.CustomTx+name, tx)
 	}
 	return
 }
@@ -58,12 +58,12 @@ func GetMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
 // ---------- 租户数据源处理代码块 ----------------
 
 func GetClientDbTX(ctx iris.Context, clientId string) (tx *gorm.DB) {
-	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.ClientTx)
+	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.ClientTx + clientId)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
 		tx = GetDbByName(clientId).Begin()
-		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientTx, tx)
+		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientTx+clientId, tx)
 	}
 	return
 }
