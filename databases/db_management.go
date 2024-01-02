@@ -100,24 +100,4 @@ func TransactionHandler(ctx iris.Context, err interface{}) {
 		}
 		return true
 	})
-	//txObjKey := ""
-	//switch dbType {
-	//case _const.ClientTx:
-	//	txObjKey = _const.ClientTx
-	//case _const.MasterTx:
-	//	txObjKey = _const.MasterTx
-	//default:
-	//	txObjKey = _const.CustomTx
-	//}
-	//// 获取到单次会话获取过的数据库操作对象
-	//value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + txObjKey)
-	//if ok {
-	//	tx := value.(*gorm.DB)
-	//	if err == nil {
-	//		tx.Commit()
-	//	} else {
-	//		tx.Rollback()
-	//	}
-	//	store.Del(http_session.GetCurrentHttpSessionUniqueKey(ctx) + txObjKey)
-	//}
 }

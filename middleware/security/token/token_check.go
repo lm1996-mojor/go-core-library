@@ -26,14 +26,15 @@ func CheckIdentity(ctx iris.Context) {
 		return
 	}
 	//获取token
-	author := ctx.GetHeader(_const.TokenName)
-	if author == "" {
-		// 如果为webSocket请求
+	author := ""
+	if strings.Contains(ctx.Request().Proto, "HTTP") {
+		author = ctx.GetHeader(_const.TokenName)
+	} else {
 		author = ctx.GetHeader(_const.WebSocketTokenStoreHttpRequestHeaderName)
-		if author == "" {
-			ctx.JSON(rest.FailCustom(401, "尚未登录,请登录后再进行操作", rest.ERROR))
-			return
-		}
+	}
+	if author == "" || author == "null" || len(author) <= 0 {
+		ctx.JSON(rest.FailCustom(401, "尚未登录,请登录后再进行操作", rest.ERROR))
+		return
 	}
 
 	//去除token 头部信息
