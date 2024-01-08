@@ -57,6 +57,9 @@ func RequestAction(reqMdl *RemoteReqMdl, reqMod string) (respParam map[string]in
 		// 异步请求
 		go func() {
 			respParam, err = remoteRequestHandler(reqMdl)
+			if err != nil {
+				err = errors.New("【异步请求出错】" + err.Error())
+			}
 		}()
 	}
 	return respParam, err
