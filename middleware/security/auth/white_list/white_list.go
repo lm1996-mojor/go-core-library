@@ -23,8 +23,7 @@ func Init() {
 	defaultWhiteList := make([]Url, 0)
 	var tokenWhiteList []string
 	databases.GetDbByName("platform_management").Table("permissions_menu").
-		Where("is_white_list = ?", 1).Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4).
-		Select("req_url").Find(&tokenWhiteList)
+		Where("is_white_list = ?", 1).Where("status = ?", 1).Select("req_url").Find(&tokenWhiteList)
 	for _, url := range tokenWhiteList {
 		defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: "T"})
 	}

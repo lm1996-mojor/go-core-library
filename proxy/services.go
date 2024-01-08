@@ -11,6 +11,7 @@ import (
 
 	clog "github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/rest"
+	"github.com/spf13/cast"
 )
 
 const (
@@ -81,10 +82,17 @@ func remoteRequestHandler(reqMdl *RemoteReqMdl, respParam *map[string]interface{
 	}
 	// 开始请求
 	resp, err2 := http.DefaultClient.Do(req)
-	err = &err2
+	if err2 != nil {
+		err = &err2
+		return
+	}
+
 	//解析响应体数据为二进制数组([]byte)
 	respBody, err3 := checkResp(resp)
-	err = &err3
+	if err2 != nil {
+		err = &err3
+		return
+	}
 	//闭包关流
 	defer func(Body io.ReadCloser) {
 		err1 := Body.Close()
@@ -100,13 +108,16 @@ func remoteRequestHandler(reqMdl *RemoteReqMdl, respParam *map[string]interface{
 
 func checkResp(resp *http.Response) ([]byte, error) {
 	b, e := io.ReadAll(resp.Body)
-	if e == nil && resp.StatusCode != 200 {
+	if e == nil && resp.StatusCode == 200 {
 		var result rest.Result
 		err := json.Unmarshal(b, &result)
 		if err == nil && result.Code != 200 && result.Code != 0 {
 			e = errors.New(result.Msg)
 			return nil, e
 		}
+	} else {
+		e = errors.New(cast.ToString(resp.StatusCode) + ":" + resp.Status)
+		return nil, e
 	}
 	return b, e
 }
