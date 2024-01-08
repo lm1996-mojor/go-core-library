@@ -116,7 +116,7 @@ func checkResp(resp *http.Response) ([]byte, error) {
 			return nil, e
 		}
 	} else {
-		e = errors.New(cast.ToString(resp.StatusCode) + ":" + resp.Status)
+		e = errors.New("远程请求错误：" + cast.ToString(resp.StatusCode) + ":" + resp.Status)
 		return nil, e
 	}
 	return b, e
