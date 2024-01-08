@@ -89,7 +89,7 @@ func remoteRequestHandler(reqMdl *RemoteReqMdl, respParam *map[string]interface{
 
 	//解析响应体数据为二进制数组([]byte)
 	respBody, err3 := checkResp(resp)
-	if err2 != nil {
+	if err3 != nil {
 		err = &err3
 		return
 	}
