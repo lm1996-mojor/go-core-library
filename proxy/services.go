@@ -52,16 +52,18 @@ func RequestAction(reqMdl *RemoteReqMdl, reqMod string) (respParam map[string]in
 	}
 	if reqMod == "sync" {
 		// 同步请求
-		remoteRequestHandler(reqMdl, &respParam, &err)
+		err = remoteRequestHandler(reqMdl, &respParam)
 	} else {
 		// 异步请求
-		go remoteRequestHandler(reqMdl, &respParam, &err)
+		go func() {
+			err = remoteRequestHandler(reqMdl, &respParam)
+		}()
 	}
 	return respParam, err
 }
 
 // 远程请求处理器
-func remoteRequestHandler(reqMdl *RemoteReqMdl, respParam *map[string]interface{}, err *error) {
+func remoteRequestHandler(reqMdl *RemoteReqMdl, respParam *map[string]interface{}) (err error) {
 	reqMdl.Method = strings.ToUpper(reqMdl.Method)
 	//将请求数据转为二进制数组
 	var reader *bytes.Reader
@@ -83,15 +85,13 @@ func remoteRequestHandler(reqMdl *RemoteReqMdl, respParam *map[string]interface{
 	// 开始请求
 	resp, err2 := http.DefaultClient.Do(req)
 	if err2 != nil {
-		err = &err2
-		return
+		return err2
 	}
 
 	//解析响应体数据为二进制数组([]byte)
 	respBody, err3 := checkResp(resp)
 	if err3 != nil {
-		err = &err3
-		return
+		return err3
 	}
 	//闭包关流
 	defer func(Body io.ReadCloser) {
@@ -102,8 +102,11 @@ func remoteRequestHandler(reqMdl *RemoteReqMdl, respParam *map[string]interface{
 	}(resp.Body)
 	//将二进制数据解析为map[string]interface{}类型，以便后面取用
 	body, err4 := ParseResponseBody(respBody)
+	if err4 != nil {
+		return err4
+	}
 	respParam = &body
-	err = &err4
+	return nil
 }
 
 func checkResp(resp *http.Response) ([]byte, error) {
