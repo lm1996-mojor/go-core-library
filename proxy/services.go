@@ -118,7 +118,7 @@ func checkResp(resp *http.Response) ([]byte, error) {
 		err := json.Unmarshal(b, &result)
 		if err == nil && result.Code != 200 && result.Code != 0 {
 			e = errors.New(result.Msg)
-			return nil, e
+			return b, e
 		}
 	} else {
 		e = errors.New("远程请求错误：[ " + cast.ToString(resp.StatusCode) + "：" + resp.Status + " ]")
