@@ -119,14 +119,20 @@ func GetSubscriptionMessagesFromCache() {
 			log.Info("发现新的数据源订阅，处理订阅信息")
 			dbDnsMap := make(map[string]string)
 			// 订阅者实时接收频道中的消息
-			for msg := range sub.Channel() {
-				// 打印频道号和消息内容
-				//fmt.Printf("接收到来自频道%s的消息: %s\n",
-				//	 msg.Channel, msg.Payload)
+			select {
+			case msg := <-sub.Channel():
 				split := strings.Split(msg.Channel, "@")
 				dbDnsMap[split[1]] = msg.Payload
 			}
+			//for msg := range sub.Channel() {
+			//	// 打印频道号和消息内容
+			//	//fmt.Printf("接收到来自频道%s的消息: %s\n",
+			//	//	 msg.Channel, msg.Payload)
+			//	split := strings.Split(msg.Channel, "@")
+			//	dbDnsMap[split[1]] = msg.Payload
+			//}
 			// 遍历数据
+			log.Info("装载数据源")
 			for dbKey, dns := range dbDnsMap {
 				// 判断新连接是否已经在缓存中
 				if _, ok := databases.GetDbMap()[dbKey]; ok {
@@ -142,11 +148,12 @@ func GetSubscriptionMessagesFromCache() {
 				mutex.Unlock()
 			}
 		}
+
 		time.Sleep(30 * time.Second)
 	}
 }
 
-const runLevel = -3
+const runLevel = -1
 
 // 初始化数据库操作
 func init() {
