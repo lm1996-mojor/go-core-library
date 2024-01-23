@@ -1,10 +1,8 @@
 package databases
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -13,7 +11,6 @@ import (
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
-	"github.com/lm1996-mojor/go-core-library/redis"
 	localCipher "github.com/lm1996-mojor/go-core-library/utils/cipher"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/mysql"
@@ -35,6 +32,14 @@ type clientDb struct {
 	DbPass   string `json:"dbPass,omitempty"`  // 租户专属数据库密码
 	DbType   string `json:"dbType,omitempty"`  // 租户专属数据库类型（mysql/Oracle/PostgreSQL/DB2/SQL Server、MariaDB）
 	EnvType  int8   `json:"envType,omitempty"` // 数据库环境类型（1 线上 2 开发  3 测试 4 体验）
+}
+
+func GetDbMap() map[string]*gorm.DB {
+	return dbMap
+}
+
+func SetDbMap(key string, db *gorm.DB) {
+	dbMap[key] = db
 }
 
 // GormLogger 自定义Gorm日志结构体
@@ -68,9 +73,6 @@ func init() {
 
 // Init 初始化数据库信息实现方法
 func Init(app *iris.Application) {
-	if config.Sysconfig.DataBases.EnableDbDynamicAddition {
-		go GetSubscriptionMessagesFromCache()
-	}
 	if config.Sysconfig.DataBases.ClientEnable {
 		initClientDB()
 	}
@@ -87,7 +89,7 @@ func initCustomizedDB() {
 			database.Port + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 		//打开连接
 		clog.Info("自定义数据库连接：" + dsn)
-		db, err := connectDB(dsn)
+		db, err := ConnectDB(dsn)
 		if err != nil {
 			panic("自定义数据库连接错误: " + err.Error())
 		}
@@ -139,7 +141,7 @@ func initClientDB() {
 			database.DbPort + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 		//打开连接
 		clog.Info("租户数据库连接：" + dsn)
-		db, err := connectDB(dsn)
+		db, err := ConnectDB(dsn)
 		if err != nil {
 			panic("租户数据库连接错误: " + err.Error())
 		}
@@ -151,7 +153,7 @@ func initClientDB() {
 }
 
 // 打开数据库连接
-func connectDB(dsn string) (db *gorm.DB, err error) {
+func ConnectDB(dsn string) (db *gorm.DB, err error) {
 	//通过传输进来的dsn信息，使用mysql.open方法打开数据的连接，并配置gorm.config结构体相关的信息
 	// NamingStrategy ：取消默认表名
 
@@ -172,40 +174,4 @@ func connectDB(dsn string) (db *gorm.DB, err error) {
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(30)
 	return
-}
-
-func GetSubscriptionMessagesFromCache() {
-	for {
-		ctx := context.Background()
-		//【Subscribe】订阅频道
-		sub := redis.RedisPSubscribe(ctx, "client_db_add@*")
-		if sub != nil {
-			dbDnsMap := make(map[string]string)
-			// 订阅者实时接收频道中的消息
-			for msg := range sub.Channel() {
-				// 打印频道号和消息内容
-				//fmt.Printf("接收到来自频道%s的消息: %s\n",
-				//	 msg.Channel, msg.Payload)
-				split := strings.Split(msg.Channel, "@")
-				dbDnsMap[split[1]] = msg.Payload
-			}
-			// 遍历数据
-			for dbKey, dns := range dbDnsMap {
-				// 判断新连接是否已经在缓存中
-				if _, ok := dbMap[dbKey]; ok {
-					continue
-				}
-				// 连接数据库
-				db, err := connectDB(dns)
-				if err != nil {
-					clog.Error("连接数据库失败:" + dbKey + "，连接为【" + dns + "】")
-				}
-				mutex.Lock()
-				dbMap[dbKey] = db
-				mutex.Unlock()
-			}
-		}
-		time.Sleep(30 * time.Minute)
-	}
-
 }

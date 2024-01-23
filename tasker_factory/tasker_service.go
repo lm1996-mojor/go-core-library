@@ -1,10 +1,17 @@
 package tasker_factory
 
 import (
+	"context"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/kataras/iris/v12"
+	"github.com/lm1996-mojor/go-core-library/config"
+	"github.com/lm1996-mojor/go-core-library/databases"
+	"github.com/lm1996-mojor/go-core-library/global"
 	"github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/redis"
 	"github.com/lm1996-mojor/go-core-library/utils"
 )
 
@@ -101,5 +108,54 @@ func DeleteStoppedTask(clientCode string) {
 		if tasker.TaskerStatus == 4 {
 			DeleteTasker(cCode, "")
 		}
+	}
+}
+
+func GetSubscriptionMessagesFromCache() {
+	for {
+		ctx := context.Background()
+		//【Subscribe】订阅频道
+		sub := redis.RedisPSubscribe(ctx, "client_db_add@*")
+		if sub != nil {
+			dbDnsMap := make(map[string]string)
+			// 订阅者实时接收频道中的消息
+			for msg := range sub.Channel() {
+				// 打印频道号和消息内容
+				//fmt.Printf("接收到来自频道%s的消息: %s\n",
+				//	 msg.Channel, msg.Payload)
+				split := strings.Split(msg.Channel, "@")
+				dbDnsMap[split[1]] = msg.Payload
+			}
+			// 遍历数据
+			for dbKey, dns := range dbDnsMap {
+				// 判断新连接是否已经在缓存中
+				if _, ok := databases.GetDbMap()[dbKey]; ok {
+					continue
+				}
+				// 连接数据库
+				db, err := databases.ConnectDB(dns)
+				if err != nil {
+					log.Error("连接数据库失败:" + dbKey + "，连接为【" + dns + "】")
+				}
+				mutex.Lock()
+				databases.SetDbMap(dbKey, db)
+				mutex.Unlock()
+			}
+		}
+		time.Sleep(30 * time.Minute)
+	}
+}
+
+const runLevel = -3
+
+// 初始化数据库操作
+func init() {
+	global.RegisterInit(global.Initiator{Action: Init, Level: runLevel})
+}
+
+// Init 初始化数据库信息实现方法
+func Init(app *iris.Application) {
+	if config.Sysconfig.DataBases.EnableDbDynamicAddition {
+		go GetSubscriptionMessagesFromCache()
 	}
 }
