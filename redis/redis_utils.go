@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -350,6 +351,7 @@ func RedisMset(ctx iris.Context, pairs ...interface{}) error {
 	return err
 }
 
+// RedisPublish 消息发布
 func RedisPublish(ctx iris.Context, channelName string, message interface{}) int64 {
 	result, err := redisDb.Publish(ctx, channelName, message).Result()
 	if err != nil {
@@ -357,4 +359,9 @@ func RedisPublish(ctx iris.Context, channelName string, message interface{}) int
 		panic(err)
 	}
 	return result
+}
+
+// RedisPSubscribe 匹配获取指定通道中的订阅消息
+func RedisPSubscribe(ctx context.Context, channelName string) *redis.PubSub {
+	return redisDb.PSubscribe(ctx, channelName)
 }

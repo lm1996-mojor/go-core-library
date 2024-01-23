@@ -1,8 +1,10 @@
 package databases
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,6 +13,7 @@ import (
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/global"
 	clog "github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/redis"
 	localCipher "github.com/lm1996-mojor/go-core-library/utils/cipher"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/mysql"
@@ -65,6 +68,9 @@ func init() {
 
 // Init 初始化数据库信息实现方法
 func Init(app *iris.Application) {
+	if config.Sysconfig.DataBases.EnableDbDynamicAddition {
+		go GetSubscriptionMessagesFromCache()
+	}
 	if config.Sysconfig.DataBases.ClientEnable {
 		initClientDB()
 	}
@@ -166,4 +172,40 @@ func connectDB(dsn string) (db *gorm.DB, err error) {
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(30)
 	return
+}
+
+func GetSubscriptionMessagesFromCache() {
+	for {
+		ctx := context.Background()
+		//【Subscribe】订阅频道
+		sub := redis.RedisPSubscribe(ctx, "client_db_add@*")
+		if sub != nil {
+			dbDnsMap := make(map[string]string)
+			// 订阅者实时接收频道中的消息
+			for msg := range sub.Channel() {
+				// 打印频道号和消息内容
+				//fmt.Printf("接收到来自频道%s的消息: %s\n",
+				//	 msg.Channel, msg.Payload)
+				split := strings.Split(msg.Channel, "@")
+				dbDnsMap[split[1]] = msg.Payload
+			}
+			// 遍历数据
+			for dbKey, dns := range dbDnsMap {
+				// 判断新连接是否已经在缓存中
+				if _, ok := dbMap[dbKey]; ok {
+					continue
+				}
+				// 连接数据库
+				db, err := connectDB(dns)
+				if err != nil {
+					clog.Error("连接数据库失败:" + dbKey + "，连接为【" + dns + "】")
+				}
+				mutex.Lock()
+				dbMap[dbKey] = db
+				mutex.Unlock()
+			}
+		}
+		time.Sleep(10 * 60 * 60 * 1000)
+	}
+
 }

@@ -23,10 +23,11 @@ type sysconfig struct {
 
 	//数据库内部结构体
 	DataBases struct {
-		ClientEnable bool       // 多数据源配置 默认为关闭状态
-		MasterDbName string     // 主数据库名称
-		PDns         string     // 平台数据库连接地址
-		DbInfoList   []dataBase // 多个自定义数据库源
+		ClientEnable            bool       // 多数据源配置 默认为关闭状态
+		MasterDbName            string     // 主数据库名称
+		PDns                    string     // 平台数据库连接地址
+		DbInfoList              []dataBase // 多个自定义数据库源
+		EnableDbDynamicAddition bool       // 开始数据源新增(默认为关闭状态)
 	}
 
 	//Redis配置
