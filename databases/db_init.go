@@ -205,7 +205,7 @@ func GetSubscriptionMessagesFromCache() {
 				mutex.Unlock()
 			}
 		}
-		time.Sleep(10 * 60 * 60 * 1000)
+		time.Sleep(30 * time.Minute)
 	}
 
 }
