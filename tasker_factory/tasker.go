@@ -15,16 +15,16 @@ type Tasker struct {
 	ExecTime     string        // 执行间隔时间（年-月-周-日&次）
 }
 
-//func NewTasker(d time.Duration, taskerId string, taskerName string, ownerObjName string) *Tasker {
-//	return &Tasker{
-//		t:            time.NewTicker(d),
-//		stopChan:     make(chan struct{}),
-//		TaskerStatus: 1,
-//		TaskerId:     taskerId,
-//		TaskerName:   taskerName,
-//		OwnerObjName: ownerObjName,
-//	}
-//}
+func NewTasker(d time.Duration, taskerId string, taskerName string, ownerObjName string) *Tasker {
+	return &Tasker{
+		t:            time.NewTicker(d),
+		stopChan:     make(chan struct{}),
+		TaskerStatus: 1,
+		TaskerId:     taskerId,
+		TaskerName:   taskerName,
+		OwnerObjName: ownerObjName,
+	}
+}
 
 // Stop 停止任务
 func (t *Tasker) stop() {
