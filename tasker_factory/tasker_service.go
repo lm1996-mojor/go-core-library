@@ -113,10 +113,10 @@ var mutex sync.Mutex
 
 func GetSubscriptionMessagesFromCache() {
 	for {
-		ctx := context.Background()
 		//【Subscribe】订阅频道
-		sub := redis.RedisPSubscribe(ctx, "client_db_add@*")
+		sub := redis.RedisPSubscribe(context.Background(), "client_db_add@*")
 		if sub != nil {
+			log.Info("发现新的数据源订阅，处理订阅信息")
 			dbDnsMap := make(map[string]string)
 			// 订阅者实时接收频道中的消息
 			for msg := range sub.Channel() {
