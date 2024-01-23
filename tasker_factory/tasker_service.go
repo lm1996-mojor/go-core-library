@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/kataras/iris/v12"
 	"github.com/lm1996-mojor/go-core-library/config"
@@ -114,13 +113,14 @@ var mutex sync.Mutex
 func GetSubscriptionMessagesFromCache() {
 	for {
 		//【Subscribe】订阅频道
-		sub := redis.RedisPSubscribe(context.Background(), "client_db_add?*")
+		sub := redis.RedisPSubscribe(context.Background(), "client_db_add_?*")
 		if sub != nil {
-			log.Info("发现新的数据源订阅，处理订阅信息")
+
 			dbDnsMap := make(map[string]string)
 			// 订阅者实时接收频道中的消息
 			select {
 			case msg := <-sub.Channel():
+				log.Info("发现新的数据源订阅，处理订阅信息：" + msg.Channel)
 				split := strings.Split(msg.Channel, "add")
 				dbDnsMap[split[1]] = msg.Payload
 			}
@@ -141,8 +141,7 @@ func GetSubscriptionMessagesFromCache() {
 				mutex.Unlock()
 			}
 		}
-
-		time.Sleep(30 * time.Second)
+		//time.Sleep(30 * time.Second)
 	}
 }
 
