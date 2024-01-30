@@ -1,6 +1,8 @@
 package consul_init
 
 import (
+	"strings"
+
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	libConfig "github.com/lm1996-mojor/go-core-library/config"
@@ -16,9 +18,9 @@ func Init(app *iris.Application) {
 		host := ""
 		ipAddrList := sys_environment.GetInternalIP()
 		if libConfig.Sysconfig.SystemEnv.Env != "prod" {
-			host = ipAddrList[0]
+			host = strings.ReplaceAll(strings.Split(ipAddrList[0], "\\")[0], ".", "_")
 		} else {
-			host = sys_environment.GetExternal()
+			host = strings.ReplaceAll(strings.Split(sys_environment.GetExternal(), "\\")[0], ".", "_")
 		}
 		searchConditionValue := "ID contains " + libConfig.Sysconfig.App.Name + "_" + host + "_" + libConfig.Sysconfig.App.Port
 
