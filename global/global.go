@@ -7,8 +7,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/kataras/iris/v12"
 	"github.com/lm1996-mojor/go-core-library/config"
-	"github.com/lm1996-mojor/go-core-library/health"
+	_const "github.com/lm1996-mojor/go-core-library/const"
+	"github.com/lm1996-mojor/go-core-library/consul"
 	"github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/store"
 )
 
 type Initiator struct {
@@ -61,6 +63,9 @@ func runInitiator(first, last int, app *iris.Application) {
 }
 
 func RunApp(app *iris.Application, level int, appConfigs ...iris.Configurator) {
+	app.Configure(iris.WithConfiguration(iris.Configuration{
+		TimeFormat: "2006-01-02 15:04:05",
+	}))
 	sort.Slice(initiators, func(i, j int) bool {
 		return initiators[i].Level < initiators[j].Level
 	})
@@ -70,7 +75,7 @@ func RunApp(app *iris.Application, level int, appConfigs ...iris.Configurator) {
 		mu.Unlock()
 	}
 	defer func() {
-		health.ServiceEndGlobal()
+		ServiceEndGlobal()
 	}()
 	var err error
 	if len(appConfigs) > 0 {
@@ -108,4 +113,17 @@ func RunApp(app *iris.Application, level int, appConfigs ...iris.Configurator) {
 	//		runInitiator(first, last, app)
 	//	}
 	//}
+}
+
+func ServiceEndGlobal() {
+	if config.Sysconfig.Consul.Addr != "" && config.Sysconfig.Consul.Addr != "null" && len(config.Sysconfig.Consul.Addr) > 0 {
+		value, ok := store.Get(_const.ConsulEndId)
+		if ok {
+			log.Error("获取本地缓存数据失败：consulId")
+		}
+		err := consul.ServiceDeregister(value.(string))
+		if err != nil {
+			log.Error("consul服务注销失败：" + err.Error())
+		}
+	}
 }
