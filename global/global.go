@@ -44,7 +44,7 @@ func runInitiator(first, last int, app *iris.Application) {
 	wg.Wait()
 }
 
-func RunApp(app *iris.Application, level int) {
+func Init(app *iris.Application, level int) {
 	sort.Slice(initiators, func(i, j int) bool {
 		return initiators[i].Level < initiators[j].Level
 	})
