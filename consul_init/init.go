@@ -13,7 +13,7 @@ import (
 )
 
 func Init(app *iris.Application) {
-	mvc.New(app.Party("/consul_utils")).Handle(consul_utils.NewController())
+	mvc.New(app.Party("/consul_utils")).Handle(NewController())
 	log.Info("初始化服务治理-服务健康检查接口")
 }
 
@@ -43,7 +43,7 @@ func init() {
 		}
 		consulServiceId := consul_utils.Register()
 		store.Set(_const.ConsulEndId, consulServiceId)
-		global.RegisterInit(global.Initiator{Action: Init, Level: runLevel, EndFlag: false})
+		global.RegisterInit(global.Initiator{Action: Init, Level: runLevel})
 	}
 	log.Info("无服务治理要求...")
 }

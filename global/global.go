@@ -9,15 +9,14 @@ import (
 	"github.com/lm1996-mojor/go-core-library/config"
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/consul_utils"
-	"github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/store"
+	"github.com/rs/zerolog/log"
 )
 
 type Initiator struct {
-	Action  func(app *iris.Application)
-	Level   int
-	EndFlag bool
-	id      string
+	Action func(app *iris.Application)
+	Level  int
+	id     string
 }
 
 var initiators []Initiator
@@ -27,15 +26,6 @@ func RegisterInit(initiator Initiator) {
 		initiators = make([]Initiator, 0, 5)
 	}
 	initiator.id = uuid.New().String()
-	if initiator.EndFlag {
-		for _, info := range initiators {
-			if info.id != initiator.id {
-				if info.EndFlag && initiator.EndFlag {
-					panic("系统仅限于全局存在一个末尾业务注册")
-				}
-			}
-		}
-	}
 	initiators = append(initiators, initiator)
 }
 
@@ -84,7 +74,7 @@ func RunApp(app *iris.Application, level int, appConfigs ...iris.Configurator) {
 		err = app.Run(iris.Addr(":" + config.Sysconfig.App.Port))
 	}
 	if err != nil {
-		log.Error("服务停止：" + err.Error())
+		log.Error().Msg("服务停止：" + err.Error())
 		panic(err)
 	}
 	//first := 0
@@ -119,11 +109,11 @@ func ServiceEndGlobal() {
 	if config.Sysconfig.Consul.Addr != "" && config.Sysconfig.Consul.Addr != "null" && len(config.Sysconfig.Consul.Addr) > 0 {
 		value, ok := store.Get(_const.ConsulEndId)
 		if ok {
-			log.Error("获取本地缓存数据失败：consulId")
+			log.Error().Msg("获取本地缓存数据失败：consulId")
 		}
 		err := consul_utils.ServiceDeregister(value.(string))
 		if err != nil {
-			log.Error("consul服务注销失败：" + err.Error())
+			log.Error().Msg("consul服务注销失败：" + err.Error())
 		}
 	}
 }
