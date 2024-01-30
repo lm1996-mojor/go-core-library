@@ -39,8 +39,9 @@ func Init(app *iris.Application) {
 		store.Set(_const.ConsulEndId, consulServiceId)
 		mvc.New(app.Party("/consul")).Handle(NewController())
 		log.Info("初始化服务治理-服务健康检查接口")
+	} else {
+		log.Info("无服务治理要求...")
 	}
-	log.Info("无服务治理要求...")
 }
 
 const runLevel = 10
