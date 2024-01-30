@@ -20,7 +20,7 @@ func Init(app *iris.Application) {
 		} else {
 			host = sys_environment.GetExternal()
 		}
-		searchConditionValue := "ID contains " + libConfig.Sysconfig.App.Name + "-" + host + ":" + libConfig.Sysconfig.App.Port
+		searchConditionValue := "ID contains " + libConfig.Sysconfig.App.Name + "_" + host + "_" + libConfig.Sysconfig.App.Port
 
 		consulServiceInfoList, err := FindServiceList(searchConditionValue)
 		if err != nil {
