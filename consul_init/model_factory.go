@@ -9,7 +9,7 @@ import (
 
 func GetClient() *api.Client {
 	config := api.DefaultConfig()
-	config.Address = localConfig.Sysconfig.Consul.Addr + fmt.Sprint(localConfig.Sysconfig.Consul.Port)
+	config.Address = localConfig.Sysconfig.Consul.Addr + ":" + fmt.Sprint(localConfig.Sysconfig.Consul.Port)
 	client, err := api.NewClient(config)
 	if err != nil {
 		panic(err)
