@@ -5,14 +5,14 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	libConfig "github.com/lm1996-mojor/go-core-library/config"
-	"github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/utils/sys_environment"
+	"github.com/rs/zerolog/log"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/cast"
 )
 
 func Register() string {
-	log.Info("服务注册中...")
+	log.Info().Msg("服务注册中...")
 	protocol := "://"
 	host := ""
 	ipAddrList := sys_environment.GetInternalIP()
@@ -51,7 +51,7 @@ func Register() string {
 	if err != nil {
 		panic(err)
 	}
-	log.Info("服务已注册...")
+	log.Info().Msg("服务已注册...")
 	return registration.ID
 }
 
