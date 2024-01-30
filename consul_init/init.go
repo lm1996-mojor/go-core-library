@@ -1,4 +1,4 @@
-package consul
+package consul_init
 
 import (
 	"github.com/kataras/iris/v12"
@@ -12,7 +12,7 @@ import (
 )
 
 func Init(app *iris.Application) {
-	mvc.New(app.Party("/consul")).Handle(NewController())
+	mvc.New(app.Party("/consul_init")).Handle(NewController())
 	log.Info("初始化服务治理-服务健康检查接口")
 }
 
