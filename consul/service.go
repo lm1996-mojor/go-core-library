@@ -1,4 +1,4 @@
-package consul_utils
+package consul
 
 import (
 	"strings"
@@ -24,7 +24,7 @@ func Register() string {
 		host = sys_environment.GetExternal()
 	}
 	serviceCheck := &api.AgentServiceCheck{
-		HTTP:                           protocol + host + ":" + libConfig.Sysconfig.App.Port + "/consul_utils/ser/health",
+		HTTP:                           protocol + host + ":" + libConfig.Sysconfig.App.Port + "/consul/ser/health",
 		Timeout:                        libConfig.Sysconfig.Consul.Check.CheckTimeout,
 		Interval:                       libConfig.Sysconfig.Consul.Check.CheckInterval,
 		DeregisterCriticalServiceAfter: libConfig.Sysconfig.Consul.Check.InvalidServiceLogoutTime,

@@ -4,19 +4,12 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/google/uuid"
 	"github.com/kataras/iris/v12"
-	"github.com/lm1996-mojor/go-core-library/config"
-	_const "github.com/lm1996-mojor/go-core-library/const"
-	"github.com/lm1996-mojor/go-core-library/consul_utils"
-	"github.com/lm1996-mojor/go-core-library/store"
-	"github.com/rs/zerolog/log"
 )
 
 type Initiator struct {
 	Action func(app *iris.Application)
 	Level  int
-	id     string
 }
 
 var initiators []Initiator
@@ -25,7 +18,6 @@ func RegisterInit(initiator Initiator) {
 	if initiators == nil {
 		initiators = make([]Initiator, 0, 5)
 	}
-	initiator.id = uuid.New().String()
 	initiators = append(initiators, initiator)
 }
 
@@ -52,68 +44,35 @@ func runInitiator(first, last int, app *iris.Application) {
 	wg.Wait()
 }
 
-func RunApp(app *iris.Application, level int, appConfigs ...iris.Configurator) {
-	app.Configure(iris.WithConfiguration(iris.Configuration{
-		TimeFormat: "2006-01-02 15:04:05",
-	}))
+func RunApp(app *iris.Application, level int) {
 	sort.Slice(initiators, func(i, j int) bool {
 		return initiators[i].Level < initiators[j].Level
 	})
-	for i := 0; i < len(initiators); i++ {
-		mu.Lock()
-		initiators[i].Action(app)
-		mu.Unlock()
-	}
-	defer func() {
-		ServiceEndGlobal()
-	}()
-	var err error
-	if len(appConfigs) > 0 {
-		err = app.Run(iris.Addr(":"+config.Sysconfig.App.Port), appConfigs...)
-	} else {
-		err = app.Run(iris.Addr(":" + config.Sysconfig.App.Port))
-	}
-	if err != nil {
-		log.Error().Msg("服务停止：" + err.Error())
-		panic(err)
-	}
-	//first := 0
-	//last := 0
-	//for i, initiator := range initiators {
-	//	if initiator.Level > level {
-	//		runInitiator(first, last, app)
-	//		break
-	//	}
-	//	if initiator.Level == initiators[first].Level {
-	//		last = i
-	//		if i < len(initiators)-1 {
-	//			continue
-	//		} else {
-	//			runInitiator(first, last, app)
-	//			break
-	//		}
-	//	}
-	//
-	//	runInitiator(first, last, app)
-	//
-	//	first = i
-	//	last = i
-	//
-	//	if i == len(initiators)-1 {
-	//		runInitiator(first, last, app)
-	//	}
-	//}
-}
 
-func ServiceEndGlobal() {
-	if config.Sysconfig.Consul.Addr != "" && config.Sysconfig.Consul.Addr != "null" && len(config.Sysconfig.Consul.Addr) > 0 {
-		value, ok := store.Get(_const.ConsulEndId)
-		if ok {
-			log.Error().Msg("获取本地缓存数据失败：consulId")
+	first := 0
+	last := 0
+	for i, initiator := range initiators {
+		if initiator.Level > level {
+			runInitiator(first, last, app)
+			break
 		}
-		err := consul_utils.ServiceDeregister(value.(string))
-		if err != nil {
-			log.Error().Msg("consul服务注销失败：" + err.Error())
+		if initiator.Level == initiators[first].Level {
+			last = i
+			if i < len(initiators)-1 {
+				continue
+			} else {
+				runInitiator(first, last, app)
+				break
+			}
+		}
+
+		runInitiator(first, last, app)
+
+		first = i
+		last = i
+
+		if i == len(initiators)-1 {
+			runInitiator(first, last, app)
 		}
 	}
 }
