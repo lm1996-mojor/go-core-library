@@ -41,7 +41,7 @@ func Register() string {
 	uuid, _ := uuid.GenerateUUID()
 	registration := &api.AgentServiceRegistration{
 		Address: host,
-		ID:      libConfig.Sysconfig.App.Name + "-" + host + ":" + libConfig.Sysconfig.App.Port + "-" + strings.Split(uuid, "-")[0],
+		ID:      libConfig.Sysconfig.App.Name + "_" + host + "_" + libConfig.Sysconfig.App.Port + "_" + strings.Split(uuid, "-")[0],
 		Name:    libConfig.Sysconfig.App.Name,
 		Port:    cast.ToInt(libConfig.Sysconfig.App.Port),
 		Tags:    []string{libConfig.Sysconfig.App.Name},
