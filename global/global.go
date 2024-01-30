@@ -45,34 +45,41 @@ func runInitiator(first, last int, app *iris.Application) {
 }
 
 func Init(app *iris.Application, level int) {
+	app.Configure(iris.WithConfiguration(iris.Configuration{
+		TimeFormat: "2006-01-02 15:04:05",
+	}))
 	sort.Slice(initiators, func(i, j int) bool {
 		return initiators[i].Level < initiators[j].Level
 	})
-
-	first := 0
-	last := 0
-	for i, initiator := range initiators {
-		if initiator.Level > level {
-			runInitiator(first, last, app)
-			break
-		}
-		if initiator.Level == initiators[first].Level {
-			last = i
-			if i < len(initiators)-1 {
-				continue
-			} else {
-				runInitiator(first, last, app)
-				break
-			}
-		}
-
-		runInitiator(first, last, app)
-
-		first = i
-		last = i
-
-		if i == len(initiators)-1 {
-			runInitiator(first, last, app)
-		}
+	for i := 0; i < len(initiators); i++ {
+		mu.Lock()
+		initiators[i].Action(app)
+		mu.Unlock()
 	}
+	//first := 0
+	//last := 0
+	//for i, initiator := range initiators {
+	//	if initiator.Level > level {
+	//		runInitiator(first, last, app)
+	//		break
+	//	}
+	//	if initiator.Level == initiators[first].Level {
+	//		last = i
+	//		if i < len(initiators)-1 {
+	//			continue
+	//		} else {
+	//			runInitiator(first, last, app)
+	//			break
+	//		}
+	//	}
+	//
+	//	runInitiator(first, last, app)
+	//
+	//	first = i
+	//	last = i
+	//
+	//	if i == len(initiators)-1 {
+	//		runInitiator(first, last, app)
+	//	}
+	//}
 }
