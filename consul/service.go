@@ -4,10 +4,10 @@ import (
 	"strings"
 
 	"github.com/hashicorp/consul/api"
+	uuid "github.com/hashicorp/go-uuid"
 	libConfig "github.com/lm1996-mojor/go-core-library/config"
 	"github.com/lm1996-mojor/go-core-library/utils/sys_environment"
 	"github.com/rs/zerolog/log"
-	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/cast"
 )
 
@@ -38,9 +38,10 @@ func Register() string {
 		}
 	}
 	meta["public_network"] = sys_environment.GetExternal() + ":" + libConfig.Sysconfig.App.Port
+	uuid, _ := uuid.GenerateUUID()
 	registration := &api.AgentServiceRegistration{
 		Address: host,
-		ID:      libConfig.Sysconfig.App.Name + "-" + host + ":" + libConfig.Sysconfig.App.Port + "-" + strings.Split(uuid.NewV3(uuid.NewV4(), "abc").String(), "-")[0],
+		ID:      libConfig.Sysconfig.App.Name + "-" + host + ":" + libConfig.Sysconfig.App.Port + "-" + strings.Split(uuid, "-")[0],
 		Name:    libConfig.Sysconfig.App.Name,
 		Port:    cast.ToInt(libConfig.Sysconfig.App.Port),
 		Tags:    []string{libConfig.Sysconfig.App.Name},
