@@ -1,4 +1,4 @@
-package consul_init
+package consul
 
 import (
 	"strings"
@@ -37,7 +37,7 @@ func Init(app *iris.Application) {
 		}
 		consulServiceId := Register()
 		store.Set(_const.ConsulEndId, consulServiceId)
-		mvc.New(app.Party("/consul_init")).Handle(NewController())
+		mvc.New(app.Party("/consul")).Handle(NewController())
 		log.Info("初始化服务治理-服务健康检查接口")
 	}
 	log.Info("无服务治理要求...")

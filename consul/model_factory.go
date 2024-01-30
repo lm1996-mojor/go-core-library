@@ -1,4 +1,4 @@
-package consul_init
+package consul
 
 import (
 	"fmt"
