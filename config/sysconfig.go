@@ -13,14 +13,22 @@ import (
 type sysconfig struct {
 	//服务信息结构体
 	App struct {
-		Cluster  string
-		Name     string
-		Host     string
-		Port     string
-		TimeZone string
-		Language string
+		Name                     string
+		Host                     string
+		Port                     string
+		TimeZone                 string
+		Language                 string
+		ServiceRequestPathPrefix string
 	}
-
+	Consul struct {
+		Addr  string
+		Port  int
+		Check struct {
+			CheckTimeout             string
+			CheckInterval            string
+			InvalidServiceLogoutTime string
+		}
+	}
 	//数据库内部结构体
 	DataBases struct {
 		ClientEnable            bool       // 多数据源配置 默认为关闭状态

@@ -1,11 +1,12 @@
 package _const
 
 const (
-	CONFIG                                   = "application.yaml"        // 系统配置文件名
-	TokenType                                = "act"                     // token类型(自定义)
-	TokenSignature                           = "link_ease_platform"      // token令牌签名
-	DbLinkEncryptKey                         = "201dd1f39f184638"        // 数据库链接加密key
-	TokenName                                = "Authorization"           // 令牌Header存放key名称
+	CONFIG                                   = "application.yaml"   // 系统配置文件名
+	TokenType                                = "act"                // token类型(自定义)
+	TokenSignature                           = "link_ease_platform" // token令牌签名
+	DbLinkEncryptKey                         = "201dd1f39f184638"   // 数据库链接加密key
+	TokenName                                = "Authorization"      // 令牌Header存放key名称
+	ConsulEndId                              = "consulServiceId"
 	ClientID                                 = "_clientId"               // 租户id
 	ClientTx                                 = "_client_db_transaction_" // 租户带事务的数据源
 	MasterTx                                 = "_master_db_transaction_" // 平台库带事务的数据源
