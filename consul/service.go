@@ -18,10 +18,12 @@ func Register() string {
 	ipAddrList := sys_environment.GetInternalIP()
 	if libConfig.Sysconfig.SystemEnv.Env != "prod" {
 		protocol = "http" + protocol
-		host = strings.ReplaceAll(strings.Split(ipAddrList[0], "\\")[0], ".", "_")
+		host = strings.Split(ipAddrList[0], "/")[0]
+		//host = strings.ReplaceAll(strings.Split(ipAddrList[0], "/")[0], ".", "_")
 	} else {
 		protocol = "https" + protocol
-		host = strings.ReplaceAll(strings.Split(sys_environment.GetExternal(), "\\")[0], ".", "_")
+		host = strings.Split(sys_environment.GetExternal(), "/")[0]
+		//host = strings.ReplaceAll(strings.Split(sys_environment.GetExternal(), "/")[0], ".", "_")
 	}
 	serviceCheck := &api.AgentServiceCheck{
 		HTTP:                           protocol + host + ":" + libConfig.Sysconfig.App.Port + "/consul/ser/health",
@@ -41,7 +43,7 @@ func Register() string {
 	uuid, _ := uuid.GenerateUUID()
 	registration := &api.AgentServiceRegistration{
 		Address: host,
-		ID:      libConfig.Sysconfig.App.Name + "_" + host + "_" + libConfig.Sysconfig.App.Port + "_" + strings.Split(uuid, "-")[0],
+		ID:      libConfig.Sysconfig.App.Name + "_" + strings.ReplaceAll(host, ".", "_") + "_" + libConfig.Sysconfig.App.Port + "_" + strings.Split(uuid, "-")[0],
 		Name:    libConfig.Sysconfig.App.Name,
 		Port:    cast.ToInt(libConfig.Sysconfig.App.Port),
 		Tags:    []string{libConfig.Sysconfig.App.Name},

@@ -18,9 +18,9 @@ func Init(app *iris.Application) {
 		host := ""
 		ipAddrList := sys_environment.GetInternalIP()
 		if libConfig.Sysconfig.SystemEnv.Env != "prod" {
-			host = strings.ReplaceAll(strings.Split(ipAddrList[0], "\\")[0], ".", "_")
+			host = strings.ReplaceAll(strings.Split(ipAddrList[0], "/")[0], ".", "_")
 		} else {
-			host = strings.ReplaceAll(strings.Split(sys_environment.GetExternal(), "\\")[0], ".", "_")
+			host = strings.ReplaceAll(strings.Split(sys_environment.GetExternal(), "/")[0], ".", "_")
 		}
 		searchConditionValue := "ID contains " + libConfig.Sysconfig.App.Name + "_" + host + "_" + libConfig.Sysconfig.App.Port
 
