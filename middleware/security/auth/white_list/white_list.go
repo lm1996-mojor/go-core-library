@@ -27,6 +27,7 @@ func Init() {
 	for _, url := range tokenWhiteList {
 		defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: "T"})
 	}
+	defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: "/consul/ser/health", CheckType: "T"})
 	clog.Info("获取权限白名单....")
 	var authWhiteList []string
 	databases.GetDbByName("platform_management").Table("permissions_menu").
