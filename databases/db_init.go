@@ -34,6 +34,14 @@ type clientDb struct {
 	EnvType  int8   `json:"envType,omitempty"` // 数据库环境类型（1 线上 2 开发  3 测试 4 体验）
 }
 
+func GetDbMap() map[string]*gorm.DB {
+	return dbMap
+}
+
+func SetDbMap(key string, db *gorm.DB) {
+	dbMap[key] = db
+}
+
 // GormLogger 自定义Gorm日志结构体
 type GormLogger struct{}
 
@@ -65,7 +73,7 @@ func init() {
 
 // Init 初始化数据库信息实现方法
 func Init(app *iris.Application) {
-	if config.Sysconfig.DataBases.ClientDbEnable {
+	if config.Sysconfig.DataBases.ClientEnable {
 		initClientDB()
 	}
 	initCustomizedDB() //初始化自定义数据库信息
@@ -81,7 +89,7 @@ func initCustomizedDB() {
 			database.Port + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 		//打开连接
 		clog.Info("自定义数据库连接：" + dsn)
-		db, err := connectDB(dsn)
+		db, err := ConnectDB(dsn)
 		if err != nil {
 			panic("自定义数据库连接错误: " + err.Error())
 		}
@@ -133,7 +141,7 @@ func initClientDB() {
 			database.DbPort + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 		//打开连接
 		clog.Info("租户数据库连接：" + dsn)
-		db, err := connectDB(dsn)
+		db, err := ConnectDB(dsn)
 		if err != nil {
 			panic("租户数据库连接错误: " + err.Error())
 		}
@@ -145,7 +153,7 @@ func initClientDB() {
 }
 
 // 打开数据库连接
-func connectDB(dsn string) (db *gorm.DB, err error) {
+func ConnectDB(dsn string) (db *gorm.DB, err error) {
 	//通过传输进来的dsn信息，使用mysql.open方法打开数据的连接，并配置gorm.config结构体相关的信息
 	// NamingStrategy ：取消默认表名
 

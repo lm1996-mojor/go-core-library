@@ -10,6 +10,7 @@ import (
 
 	"github.com/kataras/iris/v12"
 	_const "github.com/lm1996-mojor/go-core-library/const"
+	"github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/store"
 )
@@ -68,4 +69,16 @@ func ObtainClientId(ctx iris.Context) (clientId int64, err error) {
 		return 0, errors.New("租户参数转换失败")
 	}
 	return cId, nil
+}
+
+// PrintCallerInfo 打印访问者简单信息
+func PrintCallerInfo(ctx iris.Context) {
+	callerName := ""
+	split := strings.Split(ctx.RemoteAddr(), ":")
+	if len(split) < 0 {
+		callerName = "未知"
+	} else {
+		callerName = split[0]
+	}
+	log.Info("当前访问者：【" + callerName + "】的访问id为：[" + ctx.GetID().(string) + "]且访问的路径为：" + ctx.Path())
 }

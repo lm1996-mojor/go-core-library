@@ -13,20 +13,28 @@ import (
 type sysconfig struct {
 	//服务信息结构体
 	App struct {
-		Cluster  string
 		Name     string
 		Host     string
 		Port     string
 		TimeZone string
 		Language string
 	}
-
+	Consul struct {
+		Addr  string
+		Port  int
+		Check struct {
+			CheckTimeout             string
+			CheckInterval            string
+			InvalidServiceLogoutTime string
+		}
+	}
 	//数据库内部结构体
 	DataBases struct {
-		ClientDbEnable bool       // 多数据源配置 默认为开启状态
-		MasterDbName   string     // 主数据库名称
-		PDns           string     // 平台数据库连接地址
-		DbInfoList     []dataBase // 多个自定义数据库源
+		ClientEnable            bool       // 多数据源配置 默认为关闭状态
+		MasterDbName            string     // 主数据库名称
+		PDns                    string     // 平台数据库连接地址
+		DbInfoList              []dataBase // 多个自定义数据库源
+		EnableDbDynamicAddition bool       // 开始数据源新增(默认为关闭状态)
 	}
 
 	//Redis配置

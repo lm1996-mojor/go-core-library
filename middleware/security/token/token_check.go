@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/kataras/iris/v12"
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	clog "github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
@@ -11,14 +12,13 @@ import (
 	"github.com/lm1996-mojor/go-core-library/proxy"
 	"github.com/lm1996-mojor/go-core-library/rest"
 	"github.com/lm1996-mojor/go-core-library/store"
-
-	"github.com/kataras/iris/v12"
+	"github.com/lm1996-mojor/go-core-library/utils"
 )
 
 func CheckIdentity(ctx iris.Context) {
 	//获取请求路径
+	utils.PrintCallerInfo(ctx)
 	reqPath := ctx.Path()
-	clog.Info("请求路径: " + reqPath)
 	ctx.Values().Set("pass_label", "N")
 	if white_list.InList(reqPath, 1) {
 		ctx.Values().Set("pass_label", "Y")
@@ -26,8 +26,13 @@ func CheckIdentity(ctx iris.Context) {
 		return
 	}
 	//获取token
-	author := ctx.GetHeader(_const.TokenName)
-	if author == "" {
+	author := ""
+	if strings.Contains(ctx.Request().Proto, "HTTP") {
+		author = ctx.GetHeader(_const.TokenName)
+	} else {
+		author = ctx.GetHeader(_const.WebSocketTokenStoreHttpRequestHeaderName)
+	}
+	if author == "" || author == "null" || len(author) <= 0 {
 		ctx.JSON(rest.FailCustom(401, "尚未登录,请登录后再进行操作", rest.ERROR))
 		return
 	}
@@ -65,6 +70,8 @@ func CheckIdentity(ctx iris.Context) {
 			ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
 			return
 		}
+		// 用于判断是否为超级管理员，主要用在鉴权时是否需要走权限系统
+		ctx.Values().Set("isSuperAdmin", tokenClaims["isSuperAdmin"])
 		// 以下所有数据都会在单次回话完成后进行清空
 		//将从token中获取到的租户id存入tls中，用于动态数据源
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientID, tokenClaims[_const.ClientID].(string))

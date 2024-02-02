@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/kataras/iris/v12"
+	"github.com/lm1996-mojor/go-core-library/config"
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	dbLib "github.com/lm1996-mojor/go-core-library/databases"
 	"github.com/lm1996-mojor/go-core-library/log"
@@ -55,6 +56,42 @@ func ObtainClientDbTx(ctx iris.Context) (db *gorm.DB) {
 		panic("服务器错误")
 	}
 	return dbLib.GetClientDbTX(ctx, fmt.Sprintf("%d", clientId))
+}
+
+// ObtainDb 获取数据源
+//
+// @Param ctx http会话对象
+//
+// @Param txFlag 是否获取带事务的数据源标识（true 是  false 否）
+func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
+	clientId, err := ObtainClientId(ctx)
+	if err != nil {
+		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
+		//panic("服务器错误")
+	}
+	// 判断是否需要进入租户库
+	if clientId < 0 {
+		if txFlag {
+			return dbLib.GetDbByName("platform_management")
+		} else {
+			return dbLib.GetCustomDbTxByDbName(ctx, "platform_management")
+		}
+	} else {
+		if config.Sysconfig.SystemEnv.Env == "prod" && config.Sysconfig.DataBases.ClientEnable {
+			clientIdStr := fmt.Sprintf("%d", clientId)
+			if txFlag {
+				return dbLib.GetClientDbTX(ctx, clientIdStr)
+			} else {
+				return dbLib.GetDbByName(clientIdStr)
+			}
+		} else {
+			if txFlag {
+				return dbLib.GetDbByName("")
+			} else {
+				return dbLib.GetMasterDbTx(ctx)
+			}
+		}
+	}
 }
 
 // ObtainClientId 获取当前的租户id

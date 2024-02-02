@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,18 +10,18 @@ import (
 
 	"github.com/lm1996-mojor/go-core-library/log"
 
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
-func RedisSet(key string, value interface{}, expire int) error {
+func RedisSet(ctx context.Context, key string, value interface{}, expire int) error {
 	if expire > 0 {
-		err := redisSingleDb.Do("SET", key, value, "PX", expire).Err()
+		err := redisDb.Do(ctx, "SET", key, value, "PX", expire).Err()
 		if err != nil {
 			log.Errorf("RedisSet Error! key:", key, "Details:", err.Error())
 			return err
 		}
 	} else {
-		err := redisSingleDb.Do("SET", key, value).Err()
+		err := redisDb.Do(ctx, "SET", key, value).Err()
 		if err != nil {
 			log.Errorf("RedisSet Error! key:", key, "Details:", err.Error())
 			return err
@@ -29,62 +30,62 @@ func RedisSet(key string, value interface{}, expire int) error {
 
 	return nil
 }
-func RedisKeyExists(key string) (bool, error) {
-	ok, err := redisSingleDb.Do("EXISTS", key).Bool()
+func RedisKeyExists(ctx context.Context, key string) (bool, error) {
+	ok, err := redisDb.Do(ctx, "EXISTS", key).Bool()
 	return ok, err
 }
 
-func RedisGet(key string) (string, error) {
-	value, err := redisSingleDb.Do("GET", key).String()
+func RedisGet(ctx context.Context, key string) (string, error) {
+	value, err := redisDb.Do(ctx, "GET", key).Result()
 	if err != nil {
 		return "", nil
 	}
 
-	return value, nil
+	return value.(string), nil
 }
 
-func RedisGetResult(key string) (interface{}, error) {
-	v, err := redisSingleDb.Do("GET", key).Result()
+func RedisGetResult(ctx context.Context, key string) (interface{}, error) {
+	v, err := redisDb.Do(ctx, "GET", key).Result()
 	if err == redis.Nil {
 		return v, nil
 	}
 	return v, err
 }
 
-func RedisGetInt(key string) (int, error) {
-	v, err := redisSingleDb.Do("GET", key).Int()
+func RedisGetInt(ctx context.Context, key string) (int, error) {
+	v, err := redisDb.Do(ctx, "GET", key).Int()
 	if err == redis.Nil {
 		return 0, nil
 	}
 	return v, err
 }
 
-func RedisGetInt64(key string) (int64, error) {
-	v, err := redisSingleDb.Do("GET", key).Int64()
+func RedisGetInt64(ctx context.Context, key string) (int64, error) {
+	v, err := redisDb.Do(ctx, "GET", key).Int64()
 	if err == redis.Nil {
 		return 0, nil
 	}
 	return v, err
 }
 
-func RedisGetUint64(key string) (uint64, error) {
-	v, err := redisSingleDb.Do("GET", key).Uint64()
+func RedisGetUint64(ctx context.Context, key string) (uint64, error) {
+	v, err := redisDb.Do(ctx, "GET", key).Uint64()
 	if err == redis.Nil {
 		return 0, nil
 	}
 	return v, err
 }
 
-func RedisGetFloat64(key string) (float64, error) {
-	v, err := redisSingleDb.Do("GET", key).Float64()
+func RedisGetFloat64(ctx context.Context, key string) (float64, error) {
+	v, err := redisDb.Do(ctx, "GET", key).Float64()
 	if err == redis.Nil {
 		return 0.0, nil
 	}
 	return v, err
 }
 
-func RedisExpire(key string, expire int) error {
-	err := redisSingleDb.Do("EXPIRE", key, expire).Err()
+func RedisExpire(ctx context.Context, key string, expire int) error {
+	err := redisDb.Do(ctx, "EXPIRE", key, expire).Err()
 	if err != nil {
 		log.Errorf("RedisExpire Error!", key, "Details:", err.Error())
 		return err
@@ -93,8 +94,8 @@ func RedisExpire(key string, expire int) error {
 	return nil
 }
 
-func RedisPTTL(key string) (int, error) {
-	ttl, err := redisSingleDb.Do("PTTL", key).Int()
+func RedisPTTL(ctx context.Context, key string) (int, error) {
+	ttl, err := redisDb.Do(ctx, "PTTL", key).Int()
 	if err != nil {
 		return -1, err
 	}
@@ -102,8 +103,8 @@ func RedisPTTL(key string) (int, error) {
 	return ttl, nil
 }
 
-func RedisTTL(key string) (int, error) {
-	ttl, err := redisSingleDb.Do("TTL", key).Int()
+func RedisTTL(ctx context.Context, key string) (int, error) {
+	ttl, err := redisDb.Do(ctx, "TTL", key).Int()
 	if err != nil {
 		return -1, err
 	}
@@ -111,16 +112,16 @@ func RedisTTL(key string) (int, error) {
 	return ttl, nil
 }
 
-func RedisSetJson(key string, value interface{}, expire int) error {
+func RedisSetJson(ctx context.Context, key string, value interface{}, expire int) error {
 	jsonData, _ := json.Marshal(value)
 	if expire > 0 {
-		err := redisSingleDb.Do("SET", key, jsonData, "PX", expire).Err()
+		err := redisDb.Do(ctx, "SET", key, jsonData, "PX", expire).Err()
 		if err != nil {
 			log.Errorf("RedisSetJson Error! key:", key, "Details:", err.Error())
 			return err
 		}
 	} else {
-		err := redisSingleDb.Do("SET", key, jsonData).Err()
+		err := redisDb.Do(ctx, "SET", key, jsonData).Err()
 		if err != nil {
 			log.Errorf("RedisSetJson Error! key:", key, "Details:", err.Error())
 			return err
@@ -130,58 +131,58 @@ func RedisSetJson(key string, value interface{}, expire int) error {
 	return nil
 }
 
-func RedisGetJson(key string) ([]byte, error) {
-	value, err := redisSingleDb.Do("GET", key).String()
+func RedisGetJson(ctx context.Context, key string) ([]byte, error) {
+	value, err := redisDb.Do(ctx, "GET", key).Result()
 	if err != nil {
 		return nil, nil
 	}
 
-	return []byte(value), nil
+	return []byte(value.(string)), nil
 }
 
-func RedisDel(key string) error {
-	err := redisSingleDb.Do("DEL", key).Err()
+func RedisDel(ctx context.Context, key string) error {
+	err := redisDb.Do(ctx, "DEL", key).Err()
 	if err != nil {
 		log.Errorf("RedisDel Error! key:", key, "Details:", err.Error())
 	}
 	return err
 }
 
-func RedisHGet(key, field string) (string, error) {
-	value, err := redisSingleDb.Do("HGET", key, field).String()
+func RedisHGet(ctx context.Context, key, field string) (string, error) {
+	value, err := redisDb.Do(ctx, "HGET", key, field).Result()
 	if err != nil {
 		return "", nil
 	}
 
-	return value, nil
+	return value.(string), nil
 }
 
-func RedisHSet(key, field, value string) error {
-	err := redisSingleDb.Do("HSET", key, field, value).Err()
+func RedisHSet(ctx context.Context, key, field, value string) error {
+	err := redisDb.Do(ctx, "HSET", key, field, value).Err()
 	if err != nil {
 		log.Errorf("RedisHSet Error!", key, "field:", field, "Details:", err.Error())
 	}
 	return err
 }
 
-func RedisHDel(key, field string) error {
-	err := redisSingleDb.Do("HDEL", key, field).Err()
+func RedisHDel(ctx context.Context, key, field string) error {
+	err := redisDb.Do(ctx, "HDEL", key, field).Err()
 	if err != nil {
 		log.Errorf("RedisHDel Error!", key, "field:", field, "Details:", err.Error())
 	}
 	return err
 }
 
-func RedisZAdd(key, member, score string) error {
-	err := redisSingleDb.Do("ZADD", key, score, member).Err()
+func RedisZAdd(ctx context.Context, key, member, score string) error {
+	err := redisDb.Do(ctx, "ZADD", key, score, member).Err()
 	if err != nil {
 		log.Errorf("RedisZAdd Error!", key, "member:", member, "score:", score, "Details:", err.Error())
 	}
 	return err
 }
 
-func RedisZRank(key, member string) (int, error) {
-	rank, err := redisSingleDb.Do("ZRANK", key, member).Int()
+func RedisZRank(ctx context.Context, key, member string) (int, error) {
+	rank, err := redisDb.Do(ctx, "ZRANK", key, member).Int()
 	if err == redis.Nil {
 		return -1, nil
 	}
@@ -194,8 +195,8 @@ func RedisZRank(key, member string) (int, error) {
 	return rank, err
 }
 
-func RedisZRange(key string, start, stop int) (values []string, err error) {
-	values, err = redisSingleDb.ZRange(key, int64(start), int64(stop)).Result()
+func RedisZRange(ctx context.Context, key string, start, stop int) (values []string, err error) {
+	values, err = redisDb.ZRange(ctx, key, int64(start), int64(stop)).Result()
 	if err != nil {
 		log.Errorf("RedisZRange Error!", key, "start:", start, "stop:", stop, "Details:", err.Error())
 		return
@@ -204,8 +205,8 @@ func RedisZRange(key string, start, stop int) (values []string, err error) {
 	return
 }
 
-func RedisZRangeWithScores(key string, start, stop int) (values []redis.Z, err error) {
-	values, err = redisSingleDb.ZRangeWithScores(key, int64(start), int64(stop)).Result()
+func RedisZRangeWithScores(ctx context.Context, key string, start, stop int) (values []redis.Z, err error) {
+	values, err = redisDb.ZRangeWithScores(ctx, key, int64(start), int64(stop)).Result()
 	if err != nil {
 		log.Errorf("RedisZRange Error!", key, "start:", start, "stop:", stop, "Details:", err.Error())
 		return
@@ -214,16 +215,16 @@ func RedisZRangeWithScores(key string, start, stop int) (values []redis.Z, err e
 	return
 }
 
-func RedisZRem(key, member string) error {
-	err := redisSingleDb.Do("ZREM", key, member).Err()
+func RedisZRem(ctx context.Context, key, member string) error {
+	err := redisDb.Do(ctx, "ZREM", key, member).Err()
 	if err != nil {
 		log.Errorf("RedisZRem Error!", key, "member:", member, "Details:", err.Error())
 	}
 	return err
 }
 
-func RedisRPUSH(key string, member string) (err error) {
-	err = redisSingleDb.Do("RPUSH", key, member).Err()
+func RedisRPUSH(ctx context.Context, key string, member string) (err error) {
+	err = redisDb.Do(ctx, "RPUSH", key, member).Err()
 	if err != nil {
 		log.Errorf("RedisRPUSH Error!", key, member, "Details:", err.Error())
 		return
@@ -232,8 +233,8 @@ func RedisRPUSH(key string, member string) (err error) {
 	return
 }
 
-func RedisBLPOP(timeout time.Duration, keys ...string) (value []string, err error) {
-	value, err = redisSingleDb.BLPop(timeout, keys...).Result()
+func RedisBLPOP(ctx context.Context, timeout time.Duration, keys ...string) (value []string, err error) {
+	value, err = redisDb.BLPop(ctx, timeout, keys...).Result()
 	if err == redis.Nil {
 		err = nil
 		return
@@ -246,8 +247,8 @@ func RedisBLPOP(timeout time.Duration, keys ...string) (value []string, err erro
 	return
 }
 
-func RedisLLEN(key string) (value int64, err error) {
-	value, err = redisSingleDb.LLen(key).Result()
+func RedisLLEN(ctx context.Context, key string) (value int64, err error) {
+	value, err = redisDb.LLen(ctx, key).Result()
 	if err != nil {
 		log.Errorf("RedisLLEN Error!", key, "Details:", err.Error())
 		return
@@ -256,8 +257,8 @@ func RedisLLEN(key string) (value int64, err error) {
 	return
 }
 
-func RedisLRange(key string, start, stop int) (values []string, err error) {
-	values, err = redisSingleDb.LRange(key, int64(start), int64(stop)).Result()
+func RedisLRange(ctx context.Context, key string, start, stop int) (values []string, err error) {
+	values, err = redisDb.LRange(ctx, key, int64(start), int64(stop)).Result()
 	if err != nil {
 		log.Errorf("RedisLRange Error!", key, "start:", start, "stop:", stop, "Details:", err.Error())
 		return
@@ -266,8 +267,8 @@ func RedisLRange(key string, start, stop int) (values []string, err error) {
 	return
 }
 
-func RedisKeys(pattern string) (keys []string, err error) {
-	keys, err = redisSingleDb.Keys(pattern).Result()
+func RedisKeys(ctx context.Context, pattern string) (keys []string, err error) {
+	keys, err = redisDb.Keys(ctx, pattern).Result()
 	if err != nil {
 		log.Errorf("RedisKeys Error!", pattern, "Details:", err.Error())
 		return
@@ -277,21 +278,21 @@ func RedisKeys(pattern string) (keys []string, err error) {
 }
 
 // RedisListAllValuesWithPrefix will take in a key prefix and return the value of all the keys that contain that prefix
-func RedisListAllValuesWithPrefix(prefix string) (map[string]string, error) {
+func RedisListAllValuesWithPrefix(ctx context.Context, prefix string) (map[string]string, error) {
 	// Grab all the keys with the prefix
-	keys, err := getKeys(fmt.Sprintf("%s*", prefix))
+	keys, err := getKeys(ctx, fmt.Sprintf("%s*", prefix))
 	if err != nil {
 		return nil, err
 	}
 
 	// We will now iterate through all of the values to
-	values, err := getKeyAndValuesMap(keys, prefix)
+	values, err := getKeyAndValuesMap(ctx, keys, prefix)
 
 	return values, nil
 }
 
 // getClusterKeys will take a certain prefix that the keys share and return a list of all the keys
-func getKeys(prefix string) ([]string, error) {
+func getKeys(ctx context.Context, prefix string) ([]string, error) {
 	var allKeys []string
 	var cursor uint64
 	count := int64(10) // count specifies how many keys should be returned in every Scan call
@@ -299,7 +300,7 @@ func getKeys(prefix string) ([]string, error) {
 	for {
 		var keys []string
 		var err error
-		keys, cursor, err = redisSingleDb.Scan(cursor, prefix, count).Result()
+		keys, cursor, err = redisDb.Scan(ctx, cursor, prefix, count).Result()
 		if err != nil {
 
 			return nil, errors.New("error retrieving " + prefix + " keys")
@@ -317,34 +318,49 @@ func getKeys(prefix string) ([]string, error) {
 }
 
 // getKeyAndValuesMap generates a [string]string map structure that will associate an ID with the token_util value stored in Redis
-func getKeyAndValuesMap(keys []string, prefix string) (map[string]string, error) {
+func getKeyAndValuesMap(ctx context.Context, keys []string, prefix string) (map[string]string, error) {
 	values := make(map[string]string)
 	for _, key := range keys {
-		value, err := redisSingleDb.Do("GET", key).String()
+		value, err := redisDb.Do(ctx, "GET", key).Result()
 		if err != nil {
 			return nil, errors.New("error retrieving " + prefix + " keys")
 		}
 
 		// Strip off the prefix from the key so that we save the key to the user ID
 		strippedKey := strings.Split(key, prefix)
-		values[strippedKey[1]] = value
+		values[strippedKey[1]] = value.(string)
 	}
 
 	return values, nil
 }
 
-func RedisBatchDel(key ...string) error {
-	err := redisSingleDb.Del(key...).Err()
+func RedisBatchDel(ctx context.Context, key ...string) error {
+	err := redisDb.Del(ctx, key...).Err()
 	if err != nil {
 		log.Errorf("RedisBatchDel Error! key:", key, "Details:", err.Error())
 	}
 	return err
 }
 
-func RedisMset(pairs ...interface{}) error {
-	err := redisSingleDb.MSet(pairs...).Err()
+func RedisMset(ctx context.Context, pairs ...interface{}) error {
+	err := redisDb.MSet(ctx, pairs...).Err()
 	if err != nil {
 		log.Errorf("RedisMset Error! pairs:", pairs, "Details:", err.Error())
 	}
 	return err
+}
+
+// RedisPublish 消息发布
+func RedisPublish(ctx context.Context, channelName string, message interface{}) int64 {
+	result, err := redisDb.Publish(ctx, channelName, message).Result()
+	if err != nil {
+		log.Error("发布消息至redis中错误：" + err.Error())
+		panic(err)
+	}
+	return result
+}
+
+// RedisPSubscribe 匹配获取指定通道中的订阅消息
+func RedisPSubscribe(ctx context.Context, channelName string) *redis.PubSub {
+	return redisDb.PSubscribe(ctx, channelName)
 }

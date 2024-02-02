@@ -23,12 +23,12 @@ func GetDbByName(key string) (db *gorm.DB) {
 // ---------- 自定义数据源处理代码块 ----------------
 
 func GetCustomDbTxByDbName(ctx iris.Context, name string) (tx *gorm.DB) {
-	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.CustomTx)
+	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.CustomTx + name)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
 		tx = GetDbByName(name).Begin()
-		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.CustomTx, tx)
+		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.CustomTx+name, tx)
 	}
 	return
 }
@@ -58,12 +58,12 @@ func GetMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
 // ---------- 租户数据源处理代码块 ----------------
 
 func GetClientDbTX(ctx iris.Context, clientId string) (tx *gorm.DB) {
-	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.ClientTx)
+	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.ClientTx + clientId)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
 		tx = GetDbByName(clientId).Begin()
-		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientTx, tx)
+		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientTx+clientId, tx)
 	}
 	return
 }
@@ -100,24 +100,4 @@ func TransactionHandler(ctx iris.Context, err interface{}) {
 		}
 		return true
 	})
-	//txObjKey := ""
-	//switch dbType {
-	//case _const.ClientTx:
-	//	txObjKey = _const.ClientTx
-	//case _const.MasterTx:
-	//	txObjKey = _const.MasterTx
-	//default:
-	//	txObjKey = _const.CustomTx
-	//}
-	//// 获取到单次会话获取过的数据库操作对象
-	//value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + txObjKey)
-	//if ok {
-	//	tx := value.(*gorm.DB)
-	//	if err == nil {
-	//		tx.Commit()
-	//	} else {
-	//		tx.Rollback()
-	//	}
-	//	store.Del(http_session.GetCurrentHttpSessionUniqueKey(ctx) + txObjKey)
-	//}
 }
