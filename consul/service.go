@@ -22,7 +22,11 @@ func Register() string {
 		//host = strings.ReplaceAll(strings.Split(ipAddrList[0], "/")[0], ".", "_")
 	} else {
 		protocol = "https" + protocol
-		host = strings.Split(sys_environment.GetExternal(), "/")[0]
+		if strings.Contains(sys_environment.GetExternal(), "/") {
+			host = strings.Split(sys_environment.GetExternal(), "/")[0]
+		} else {
+			host = sys_environment.GetExternal()
+		}
 		//host = strings.ReplaceAll(strings.Split(sys_environment.GetExternal(), "/")[0], ".", "_")
 	}
 	serviceCheck := &api.AgentServiceCheck{
@@ -33,13 +37,19 @@ func Register() string {
 	}
 	meta := make(map[string]string)
 	for i := 0; i < len(ipAddrList); i++ {
-		if i == len(ipAddrList)-1 {
-			meta["intranet"] = meta["intranet"] + ipAddrList[i] + ":" + libConfig.Sysconfig.App.Port
+		ipHost := ""
+		if strings.Contains(ipAddrList[i], "/") {
+			ipHost = strings.Split(ipAddrList[i], "/")[0]
 		} else {
-			meta["intranet"] = meta["intranet"] + ipAddrList[i] + ":" + libConfig.Sysconfig.App.Port + ","
+			ipHost = ipAddrList[i]
+		}
+		if i == len(ipAddrList)-1 {
+			meta["intranet"] = meta["intranet"] + protocol + ipHost + ":" + libConfig.Sysconfig.App.Port
+		} else {
+			meta["intranet"] = meta["intranet"] + protocol + ipHost + ":" + libConfig.Sysconfig.App.Port + ","
 		}
 	}
-	meta["public_network"] = sys_environment.GetExternal() + ":" + libConfig.Sysconfig.App.Port
+	meta["public_network"] = protocol + sys_environment.GetExternal() + ":" + libConfig.Sysconfig.App.Port
 	uuid, _ := uuid.GenerateUUID()
 	registration := &api.AgentServiceRegistration{
 		Address: host,
