@@ -13,11 +13,12 @@ import (
 type sysconfig struct {
 	//服务信息结构体
 	App struct {
-		Name     string
-		Host     string
-		Port     string
-		TimeZone string
-		Language string
+		Name                string
+		Host                string
+		Port                string
+		TimeZone            string
+		Language            string
+		GlobalReqPathPrefix string
 	}
 	Consul struct {
 		Addr  string
