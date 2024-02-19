@@ -80,5 +80,5 @@ func Init(app *iris.Application) {
 const runLevel = 10
 
 func init() {
-	global.RegisterInit(global.Initiator{Action: Init, Level: runLevel, ControllerReqPath: "", IsAddContextPath: false})
+	global.RegisterInit(global.Initiator{Action: Init, Level: runLevel})
 }
