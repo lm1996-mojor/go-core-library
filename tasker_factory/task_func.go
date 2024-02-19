@@ -25,12 +25,17 @@ func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
 		})
 
 	}
-	for _, list := range serviceList {
-		for _, designatedService := range config.Sysconfig.Consul.Service.DesignatedServices {
-			if designatedService.ServiceName == list.ServiceName || config.Sysconfig.Detection.AuthService == list.ServiceName || config.Sysconfig.Detection.TokenService == list.ServiceName {
-				consul.ServiceLib = append(consul.ServiceLib, list)
+	if len(config.Sysconfig.Consul.Service.DesignatedServices) <= 0 {
+		consul.ServiceLib = serviceList
+	} else {
+		for _, list := range serviceList {
+			for _, designatedService := range config.Sysconfig.Consul.Service.DesignatedServices {
+				if designatedService.ServiceName == list.ServiceName || config.Sysconfig.Detection.AuthService == list.ServiceName || config.Sysconfig.Detection.TokenService == list.ServiceName {
+					consul.ServiceLib = append(consul.ServiceLib, list)
+				}
 			}
 		}
 	}
+
 	log.Info("获取指定服务列表完成")
 }

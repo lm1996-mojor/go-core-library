@@ -13,27 +13,34 @@ import (
 type sysconfig struct {
 	//服务信息结构体
 	App struct {
-		Name                string
-		Host                string
-		Port                string
-		TimeZone            string
-		Language            string
-		GlobalReqPathPrefix string
+		Name                string // 当前服务名称
+		Host                string // 当前服务的本地地址
+		Port                string // 当前服务的访问端口
+		TimeZone            string // 当前服务的时区
+		Language            string // 当前服务的语言
+		GlobalReqPathPrefix string // 当前服务的全局请求的地址前缀
 	}
 	Consul struct {
-		Addr                string
-		Port                int
-		EnableObtainService bool
-		Check               struct {
-			CheckTimeout             string
-			CheckInterval            string
-			InvalidServiceLogoutTime string
+		Addr                string   // 服务治理中心的地址
+		Port                int      // 服务治理中心的端口
+		EnableObtainService bool     // 开启获取服务工具
+		Check               struct { // 服务检查对象
+			CheckTimeout             string // 服务检查请求超时时间
+			CheckInterval            string // 服务检查间隔时间
+			InvalidServiceLogoutTime string // 无效的服务注销时间
 		}
 		Service struct {
-			Spec               string
-			DesignatedServices []struct {
-				ServiceName string
-				Weight      int
+			Spec               string     // 定时获取服务时间命令
+			DesignatedServices []struct { // 当前服务需要获取的服务列表
+				ServiceName string // 需要获取的服务的名称
+				/** 获取的服务负载均衡模式
+				 * rr：顺序轮询，轮流分配到后端服务器；
+				 * wrr：权重轮询，根据后端服务器负载情况来分配；
+				 * lc：最小连接，分配已建立连接最少的服务器上；
+				 * wlc：权重最小连接，根据后端服务器处理能力来分配。
+				 * ssi: 请求会话id，根据前端发送的会话中的id来绑定某个固定服务进行指定服务请求（一般用于文件传输等操作）
+				 */
+				LoadBalanceMode string
 			}
 		}
 	}
@@ -96,21 +103,41 @@ func Init(app *iris.Application) {
 	// viper 参考链接：https://www.cnblogs.com/randysun/p/15889494.html
 	//导入配置文件
 	//确定文件类型 支持从JSON、TOML、YAML、HCL、INI和Java properties文件中读取配置数据。
-	viper.SetConfigType("yaml")
+	//viper.SetConfigType("yaml")
+	////从固定位置读取配置文件
+	//viper.SetConfigFile("./" + _const.CONFIG)
+	////读取配置文件
+	//err := viper.ReadInConfig()
+	//if err != nil {
+	//	panic("read configuration file failed: " + err.Error())
+	//}
+	//err = viper.Unmarshal(&Sysconfig)
+	//if err != nil {
+	//	panic("load configuration failed: " + err.Error())
+	//}
+	ReadConfigFile("./"+_const.CONFIG, "yaml", &Sysconfig)
+	// 配置有效性检验
+	validation()
+	log.Infof("初始化配置: \n %v", Sysconfig)
+}
+
+func ReadConfigFile(filePath string, fileType string, rawObj interface{}) interface{} {
+	// viper 参考链接：https://www.cnblogs.com/randysun/p/15889494.html
+	//导入配置文件
+	//确定文件类型 支持从JSON、TOML、YAML、HCL、INI和Java properties文件中读取配置数据。
+	viper.SetConfigType(fileType)
 	//从固定位置读取配置文件
-	viper.SetConfigFile("./" + _const.CONFIG)
+	viper.SetConfigFile(filePath)
 	//读取配置文件
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic("read configuration file failed: " + err.Error())
 	}
-	err = viper.Unmarshal(&Sysconfig)
+	err = viper.Unmarshal(&rawObj)
 	if err != nil {
 		panic("load configuration failed: " + err.Error())
 	}
-	// 配置有效性检验
-	validation()
-	log.Infof("初始化配置: \n %v", Sysconfig)
+	return rawObj
 }
 
 // 初始化方法
