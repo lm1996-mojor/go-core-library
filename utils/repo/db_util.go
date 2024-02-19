@@ -70,11 +70,12 @@ func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
 		//panic("服务器错误")
 	}
 	// 判断是否需要进入租户库
-	if clientId < 0 {
+	if clientId <= 0 {
+		// 使用默认数据库（如果当前操作的是业务数据库，则都会报错）
 		if txFlag {
-			return dbLib.GetDbByName("platform_management")
-		} else {
 			return dbLib.GetCustomDbTxByDbName(ctx, "platform_management")
+		} else {
+			return dbLib.GetDbByName("platform_management")
 		}
 	} else {
 		if config.Sysconfig.SystemEnv.Env == "prod" && config.Sysconfig.DataBases.ClientEnable {
@@ -86,9 +87,9 @@ func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
 			}
 		} else {
 			if txFlag {
-				return dbLib.GetDbByName("")
-			} else {
 				return dbLib.GetMasterDbTx(ctx)
+			} else {
+				return dbLib.GetDbByName("")
 			}
 		}
 	}

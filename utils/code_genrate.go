@@ -7,19 +7,8 @@ import (
 	"github.com/lm1996-mojor/go-core-library/rest/req"
 	"github.com/lm1996-mojor/go-core-library/utils/repo"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/hashicorp/go-uuid"
 )
-
-// 编码前缀集
-//
-//	var codePrefix = map[int]string{
-//		//1: "APP",      // 应用
-//		//2: "SER_FUNC", // 业务
-//		//3: "C",        // 控件
-//		//4: "S",        // 子集
-//		//5: "LK",       // 审批
-//		//6: "sms",      // 短信
-//	}
 
 type CodePrefix struct {
 	req.CommonModel
@@ -45,8 +34,7 @@ func obtainCodePrefixText(codeType int) string {
 
 // GenerateCodeByUUID 根据UUID生成编码
 func GenerateCodeByUUID(codeType int) (code string) {
-	uuId := uuid.NewV4()
-	idStr := uuId.String()
-	idStr = strings.ToUpper(strings.ReplaceAll(idStr, "-", ""))
+	uuId, _ := uuid.GenerateUUID()
+	idStr := strings.ToUpper(strings.ReplaceAll(uuId, "-", ""))
 	return obtainCodePrefixText(codeType) + idStr
 }

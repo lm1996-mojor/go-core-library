@@ -13,22 +13,24 @@ import (
 
 func Register() string {
 	log.Info("服务注册中...")
-	protocol := "://"
+	protocol := "http://"
 	host := ""
 	ipAddrList := sys_environment.GetInternalIP()
-	if libConfig.Sysconfig.SystemEnv.Env != "prod" {
-		protocol = "http" + protocol
-		host = strings.Split(ipAddrList[0], "/")[0]
-		//host = strings.ReplaceAll(strings.Split(ipAddrList[0], "/")[0], ".", "_")
-	} else {
-		protocol = "https" + protocol
-		if strings.Contains(sys_environment.GetExternal(), "/") {
-			host = strings.Split(sys_environment.GetExternal(), "/")[0]
-		} else {
-			host = sys_environment.GetExternal()
-		}
-		//host = strings.ReplaceAll(strings.Split(sys_environment.GetExternal(), "/")[0], ".", "_")
-	}
+	host = strings.ReplaceAll(strings.Split(ipAddrList[0], "/")[0], ".", "_")
+	// 解决服务器不在同一个网段的问题
+	//if libConfig.Sysconfig.SystemEnv.Env != "prod" {
+	//	protocol = "http" + protocol
+	//	host = strings.Split(ipAddrList[0], "/")[0]
+	//	//host = strings.ReplaceAll(strings.Split(ipAddrList[0], "/")[0], ".", "_")
+	//} else {
+	//	protocol = "https" + protocol
+	//	if strings.Contains(sys_environment.GetExternal(), "/") {
+	//		host = strings.Split(sys_environment.GetExternal(), "/")[0]
+	//	} else {
+	//		host = sys_environment.GetExternal()
+	//	}
+	//	//host = strings.ReplaceAll(strings.Split(sys_environment.GetExternal(), "/")[0], ".", "_")
+	//}
 	serviceCheck := &api.AgentServiceCheck{
 		HTTP:                           protocol + host + ":" + libConfig.Sysconfig.App.Port + "/consul/ser/health",
 		Timeout:                        libConfig.Sysconfig.Consul.Check.CheckTimeout,
@@ -50,10 +52,11 @@ func Register() string {
 		}
 	}
 	meta["public_network"] = protocol + sys_environment.GetExternal() + ":" + libConfig.Sysconfig.App.Port
-	uuid, _ := uuid.GenerateUUID()
+	meta["protocol_host"] = protocol + host
+	uuId, _ := uuid.GenerateUUID()
 	registration := &api.AgentServiceRegistration{
 		Address: host,
-		ID:      libConfig.Sysconfig.App.Name + "_" + strings.ReplaceAll(host, ".", "_") + "_" + libConfig.Sysconfig.App.Port + "_" + strings.Split(uuid, "-")[0],
+		ID:      libConfig.Sysconfig.App.Name + "_" + strings.ReplaceAll(host, ".", "_") + "_" + libConfig.Sysconfig.App.Port + "_" + strings.Split(uuId, "-")[0],
 		Name:    libConfig.Sysconfig.App.Name,
 		Port:    cast.ToInt(libConfig.Sysconfig.App.Port),
 		Tags:    []string{libConfig.Sysconfig.App.Name},

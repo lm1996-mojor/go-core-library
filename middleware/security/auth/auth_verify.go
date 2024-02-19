@@ -2,7 +2,9 @@ package auth
 
 import (
 	"github.com/kataras/iris/v12"
+	"github.com/lm1996-mojor/go-core-library/config"
 	_const "github.com/lm1996-mojor/go-core-library/const"
+	"github.com/lm1996-mojor/go-core-library/consul"
 	"github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
@@ -13,7 +15,7 @@ import (
 
 func Verify(ctx iris.Context) {
 	// 判断是否需要鉴权(鉴权必须要有token)
-	if ctx.Values().Get("pass_label").(string) == "Y" || ctx.Values().Get("isSuperAdmin").(bool) {
+	if ctx.Values().Get("pass_label").(string) == "Y" || ctx.Values().Get(http_session.GetCurrentHttpSessionUniqueKey(ctx)+"isSuperAdmin").(bool) {
 		ctx.Next()
 		return
 	}
@@ -24,15 +26,16 @@ func Verify(ctx iris.Context) {
 		return
 	}
 	// 权限系统-鉴权路径
-	actionUrl := "http://192.168.31.113:60220/auth/permission/verification" + "?reqUrl=" + reqUrl
-	method := "GET"
+	authService := consul.ObtainHighestWeightInServiceList(config.Sysconfig.Detection.AuthService)
+	url := authService.Proto + "://" + authService.Host + config.Sysconfig.Detection.AuthCheckServiceApiUrl
+	actionUrl := url + "?reqUrl=" + reqUrl
 	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.TokenOriginal)
 	if !ok {
 		ctx.JSON(rest.FailCustom(401, "暂未登录，请重新登录", rest.ERROR))
 		return
 	}
 	// 获取远程请求对象
-	remoteReqMdl := proxy.ParametricConstructionOfRemoteReqMdl(nil, nil, actionUrl, method, true, value.(string))
+	remoteReqMdl := proxy.ParametricConstructionOfRemoteReqMdl(nil, nil, actionUrl, "GET", true, value.(string))
 	// 进行远程请求
 	json, respErr := proxy.RequestAction(&remoteReqMdl, "asynchronous")
 	if respErr != nil {

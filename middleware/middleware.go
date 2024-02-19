@@ -37,6 +37,8 @@ func RegisterMiddleWare(app *iris.Application) {
 	app.Configure(iris.WithOptimizations)
 	// 配置会话id
 	app.UseGlobal(requestid.New(requestid.DefaultGenerator))
+	// 配置跨域处理
+	cors.InitCors(app)
 	// 根据情况选定使用哪个中间件（token 和 会话数据初始化）
 	if !config.Sysconfig.Detection.Token {
 		tempSlice := make([]MiddleWare, 0)
@@ -66,8 +68,6 @@ func RegisterMiddleWare(app *iris.Application) {
 		globalMiddleWares = tempSlice
 	}
 
-	// 配置跨域处理
-	cors.InitCors(app)
 	clog.Info("中间件中心注册中间件中.....")
 
 	if len(globalMiddleWares) > 0 {
@@ -104,7 +104,7 @@ type MiddleWare struct {
 	HandlerCnDesc   string          // 中间件处理器描述
 	HandlerEnDesc   string          // 中间件处理器英文描述
 	HandlerServer   string          // 中间件所属服务，用于解决所属服务在使用公共库时。不会重复注册中间件。
-	MiddleWareLevel int32           // 中间件等级(影响中间件运行顺序,数值越大，等级越小)
+	MiddleWareLevel int32           // 中间件等级(影响中间件运行顺序,数值越大，优先级越小)
 }
 
 // 全局化web中间件，先于其他中间件执行

@@ -1,6 +1,7 @@
 package consul
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/kataras/iris/v12"
@@ -12,6 +13,38 @@ import (
 	"github.com/lm1996-mojor/go-core-library/store"
 	"github.com/lm1996-mojor/go-core-library/utils/sys_environment"
 )
+
+var ServiceLib []ServiceLibrary
+
+type ServiceLibrary struct {
+	ServiceName     string
+	ServiceId       string
+	ServiceMetadata map[string]string
+	Host            string
+	Port            int
+	Proto           string
+	Weight          int
+}
+
+func FindSpecifyingServiceList(serviceName string) (serviceList []ServiceLibrary) {
+	if strings.Contains(serviceName, "/") {
+		serviceName = strings.ReplaceAll(serviceName, "/", "")
+	}
+	for _, service := range ServiceLib {
+		if service.ServiceName == serviceName {
+			serviceList = append(serviceList, service)
+		}
+	}
+	// 做排序操作：降序（将权重最高的服务放在前面）
+	sort.Slice(serviceList, func(i, j int) bool {
+		return serviceList[i].Weight > serviceList[j].Weight
+	})
+	return serviceList
+}
+
+func ObtainHighestWeightInServiceList(serviceName string) ServiceLibrary {
+	return FindSpecifyingServiceList(serviceName)[0]
+}
 
 func Init(app *iris.Application) {
 	if libConfig.Sysconfig.Consul.Addr != "" && libConfig.Sysconfig.Consul.Addr != "null" && len(libConfig.Sysconfig.Consul.Addr) > 0 {
@@ -47,5 +80,5 @@ func Init(app *iris.Application) {
 const runLevel = 10
 
 func init() {
-	global.RegisterInit(global.Initiator{Action: Init, Level: runLevel})
+	global.RegisterInit(global.Initiator{Action: Init, Level: runLevel, ControllerReqPath: "", IsAddContextPath: false})
 }

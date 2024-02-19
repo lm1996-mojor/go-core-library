@@ -5,7 +5,9 @@ import (
 	"strings"
 
 	"github.com/kataras/iris/v12"
+	"github.com/lm1996-mojor/go-core-library/config"
 	_const "github.com/lm1996-mojor/go-core-library/const"
+	"github.com/lm1996-mojor/go-core-library/consul"
 	clog "github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
@@ -25,7 +27,7 @@ func CheckIdentity(ctx iris.Context) {
 		ctx.Next()
 		return
 	}
-	//获取token
+	//获取token(根据请求头信息获取不同形式的token：http/websocket)
 	author := ""
 	if strings.Contains(ctx.Request().Proto, "HTTP") {
 		author = ctx.GetHeader(_const.TokenName)
@@ -44,35 +46,44 @@ func CheckIdentity(ctx iris.Context) {
 	} else {
 		token = author
 	}
-
+	tokenService := consul.ObtainHighestWeightInServiceList(config.Sysconfig.Detection.TokenService)
+	url := tokenService.Proto + "://" + tokenService.Host + config.Sysconfig.Detection.TokenCheckServiceApiUrl
 	// 获取解析后的token信息
-	respBody, err := proxy.GetParseToken(token, "http://192.168.31.113:9901/platform_inlet/sso/parse/token")
+	respBody, err := proxy.GetParseToken(token, url)
 	if err != nil {
 		clog.Error("token解析: 响应出错" + err.Error())
+		panic("服务器错误")
 		return
 	}
 	// 解析响应体中的数据
-	userClaims, parseRespErr := parseResponseBody(respBody)
+	result, parseRespErr := parseResponseBody(respBody)
 	if parseRespErr != nil {
-		ctx.JSON(rest.FailCustom(500, parseRespErr.Error(), rest.ERROR))
+		clog.Error(parseRespErr.Error())
+		panic("服务器错误")
 		return
 	}
-	if int64(userClaims["code"].(float64)) == 200 {
+
+	if result.Code == 200 {
 		//判断自定义的token类型是否正确
-		tokenClaims := userClaims["data"].(map[string]interface{})["parse_token"].(map[string]interface{})
+		tokenClaims := result.Data.(map[string]interface{})["parse_token"].(map[string]interface{})
 		if t, ok := tokenClaims["token_type"].(string); ok && t != _const.TokenType { //不是access token
-			clog.Info("令牌类型认证无效: " + err.Error())
+			clog.Warn("令牌类型认证无效: " + err.Error())
+			clog.Warn("无效令牌：" + token)
 			ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
 			return
 		}
-		if t, ok := tokenClaims["token_single"].(string); ok && t != _const.TokenSignature { //不是access token
-			clog.Info("令牌签名认证无效: " + err.Error())
+		if t, ok := tokenClaims["token_single"].(string); ok && t != _const.TokenSignature {
+			//不是access token
+			clog.Warn("令牌签名认证无效: " + err.Error())
+			clog.Warn("无效令牌：" + token)
 			ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
 			return
 		}
-		// 用于判断是否为超级管理员，主要用在鉴权时是否需要走权限系统
-		ctx.Values().Set("isSuperAdmin", tokenClaims["isSuperAdmin"])
 		// 以下所有数据都会在单次回话完成后进行清空
+		// 用于判断是否为超级管理员，主要用在鉴权时是否需要走权限系统
+		if config.Sysconfig.Detection.Authentication {
+			ctx.Values().Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+"isSuperAdmin", tokenClaims["isSuperAdmin"])
+		}
 		//将从token中获取到的租户id存入tls中，用于动态数据源
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientID, tokenClaims[_const.ClientID].(string))
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientCode, tokenClaims[_const.ClientCode].(string))
@@ -83,18 +94,18 @@ func CheckIdentity(ctx iris.Context) {
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.TokenOriginal, token)
 		ctx.Next()
 	} else {
-		ctx.JSON(rest.FailCustom(int(userClaims["code"].(float64)), userClaims["msg"].(string), rest.ERROR))
+		ctx.JSON(result)
 		return
 	}
 }
 
-func parseResponseBody(respBody []byte) (map[string]interface{}, error) {
-	var userClaims map[string]interface{}
+func parseResponseBody(respBody []byte) (rest.Result, error) {
+	var result rest.Result
 	//使用json解析响应体中的数据，并存入输出结构体中
-	err := json.Unmarshal(respBody, &userClaims)
+	err := json.Unmarshal(respBody, &result)
 	if err != nil {
-		clog.Errorf("security_check.go 解析json到结构体出错 ", err)
-		return nil, err
+		clog.Errorf("token检查解析json到结构体出错 ", err)
+		return rest.Result{}, err
 	}
-	return userClaims, nil
+	return result, nil
 }

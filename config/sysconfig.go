@@ -21,27 +21,40 @@ type sysconfig struct {
 		GlobalReqPathPrefix string
 	}
 	Consul struct {
-		Addr  string
-		Port  int
-		Check struct {
+		Addr                string
+		Port                int
+		EnableObtainService bool
+		Check               struct {
 			CheckTimeout             string
 			CheckInterval            string
 			InvalidServiceLogoutTime string
 		}
+		Service struct {
+			Spec               string
+			DesignatedServices []struct {
+				ServiceName string
+				Weight      int
+			}
+		}
 	}
 	//数据库内部结构体
 	DataBases struct {
-		ClientEnable            bool       // 多数据源配置 默认为关闭状态
-		MasterDbName            string     // 主数据库名称
-		PDns                    string     // 平台数据库连接地址
-		DbInfoList              []dataBase // 多个自定义数据库源
-		EnableDbDynamicAddition bool       // 开始数据源新增(默认为关闭状态)
+		ClientEnable          bool       // 租户数据源配置 默认为关闭状态
+		MasterDbName          string     // 主数据库名称
+		PDns                  string     // 平台数据库连接地址
+		EnableDbDynamicManage bool       // 开始数据源动态管理(默认为关闭状态)
+		DbInfoList            []struct { // 多个自定义数据库源
+			Host   string // 数据库访问地址
+			Port   string // 数据库访问端口
+			DbName string // 项目连接的数据库
+			DbUser string // 数据库用户
+			DbPass string // 数据密码
+		}
 	}
 
 	//Redis配置
 	Redis struct {
-		Host  string
-		Ports string
+		ConnInfo string // 示例：指定ip:指定端口号 / :6379(默认为本地ip)
 	}
 	//系统环境参数配置
 	SystemEnv struct {
@@ -55,8 +68,12 @@ type sysconfig struct {
 	}
 	// 检测配置
 	Detection struct {
-		Token          bool // 是否开启token检测
-		Authentication bool // 是否开启鉴权检测
+		Token                   bool   // 是否开启token检测
+		TokenService            string // token检查使用的服务
+		TokenCheckServiceApiUrl string // token检查服务接口地址
+		Authentication          bool   // 是否开启鉴权检测
+		AuthService             string // 权限检查使用的服务
+		AuthCheckServiceApiUrl  string // 权限检查使用的服务地址
 	}
 }
 
