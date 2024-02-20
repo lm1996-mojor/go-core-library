@@ -33,7 +33,7 @@ type sysconfig struct {
 			Spec               string     // 定时获取服务时间命令
 			DesignatedServices []struct { // 当前服务需要获取的服务列表
 				ServiceName string // 需要获取的服务的名称
-				/** 获取的服务负载均衡模式
+				/** 服务的负载均衡模式
 				 * rr：顺序轮询，轮流分配到后端服务器；
 				 * wrr：权重轮询，根据后端服务器负载情况来分配；
 				 * lc：最小连接，分配已建立连接最少的服务器上；
@@ -65,21 +65,15 @@ type sysconfig struct {
 	}
 	//系统环境参数配置
 	SystemEnv struct {
-		Env            string //系统环境（dev/test/prod）
-		Id             int64  //主键id
-		Domain         string //主机域名
-		IsUse          int8   //是否正在使用（1、正在使用 2、未使用）
-		EnvType        int8   //环境类型（1、开发环境 2、测试环境 3、生产线环境 ）
-		ConnectHostIp  string //连接主机ip
-		BelongUserName string //主机所属人
+		Env string //系统环境（dev/test/prod）
 	}
 	// 检测配置
 	Detection struct {
 		Token                   bool   // 是否开启token检测
-		TokenService            string // token检查使用的服务
+		TokenService            string // token检查使用的服务（名称）
 		TokenCheckServiceApiUrl string // token检查服务接口地址
 		Authentication          bool   // 是否开启鉴权检测
-		AuthService             string // 权限检查使用的服务
+		AuthService             string // 权限检查使用的服务（名称）
 		AuthCheckServiceApiUrl  string // 权限检查使用的服务地址
 	}
 }

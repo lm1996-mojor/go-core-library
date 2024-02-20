@@ -8,6 +8,7 @@ import (
 
 func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
 	log.Info("获取指定服务列表...")
+	consul.ServiceLib = make([]consul.ServiceLibrary, 0)
 	serviceMap, err := consul.FindServiceList("")
 	if err != nil {
 		log.Error("Failed to get model list：" + err.Error())

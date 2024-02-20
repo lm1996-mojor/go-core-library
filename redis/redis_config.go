@@ -27,8 +27,13 @@ func Init(app *iris.Application) {
 				if len(redisConn) > 2 {
 					panic("redis连接有问题请检查")
 				}
-				if matched, err := regexp.MatchString("((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}", redisConn[0]); !matched || err != nil {
-					panic("redis连接有问题请检查:连接ip有问题" + redisConn[0])
+				if redisConn[0] != "" && redisConn[0] != "null" && len(redisConn[0]) > 0 {
+					if matched, err := regexp.MatchString("((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}", redisConn[0]); !matched || err != nil {
+						panic("redis连接有问题请检查:连接ip有问题" + redisConn[0])
+					}
+				}
+				if redisConn[1] == "" {
+					panic("redis连接端口不能为空：" + redisConn[1])
 				}
 				if toInt, err := strconv.Atoi(redisConn[1]); !(toInt > 0) || err != nil {
 					panic("redis连接有问题请检查:端口有问题" + redisConn[1])

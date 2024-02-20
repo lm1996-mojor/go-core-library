@@ -1,0 +1,48 @@
+app:
+  port: "8080"
+  host: "127.0.0.1"
+  name: "lke_gateway"
+  timezone: "Asia/Shanghai"
+  language: "zh-CN"
+  globalReqPathPrefix: "/reqPath"
+
+databases:
+  clientEnable: false
+  masterDbName: "One of the following dbName"
+  dbInfoList:
+    - host: "host"
+      port: "port"
+      dbName: "dbName"
+      dbUser: "dbUser"
+      dbPass: "dbPass"
+    - host: "host"
+      port: "port"
+      dbName: "dbName"
+      dbUser: "dbUser"
+      dbPass: "dbPass"
+
+consul:
+  addr: "192.168.0.103"
+  port: 8500
+  enableObtainService: true
+  check:
+    checkTimeout: "10s"
+    checkInterval: "10s"
+    invalidServiceLogoutTime: "20s"
+  service:
+    spec: "*/3 * * * *"
+    designatedServices:
+      - serviceName: "serv1"
+        loadBalanceMode: "rr"
+      - serviceName: "serv2"
+        loadBalanceMode: "ssi"
+
+redis:
+  connInfo: "127.0.0.1:6379"
+
+detection:
+  token: true
+  authentication: true
+
+systemEnv:
+  env: "dev"

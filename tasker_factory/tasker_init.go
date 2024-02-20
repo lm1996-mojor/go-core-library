@@ -26,5 +26,4 @@ func Init(app *iris.Application) {
 		}
 		c.Run()
 	}
-
 }
