@@ -36,7 +36,7 @@ func FindSpecifyingServiceList(serviceName string) (serviceList []ServiceLibrary
 		serviceName = strings.ReplaceAll(serviceName, "/", "")
 	}
 	for _, service := range ServiceLib {
-		if service.ServiceName == serviceName {
+		if strings.Contains(service.ServiceName, serviceName) {
 			serviceList = append(serviceList, service)
 		}
 	}
