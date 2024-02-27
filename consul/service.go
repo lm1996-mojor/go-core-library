@@ -16,7 +16,7 @@ func Register() string {
 	protocol := "http://"
 	host := ""
 	ipAddrList := sys_environment.GetInternalIP()
-	host = strings.ReplaceAll(strings.Split(ipAddrList[0], "/")[0], ".", "_")
+	host = strings.Split(ipAddrList[0], "/")[0]
 	// 解决服务器不在同一个网段的问题
 	//if libConfig.Sysconfig.SystemEnv.Env != "prod" {
 	//	protocol = "http" + protocol
