@@ -2,6 +2,7 @@ package token
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/kataras/iris/v12"
@@ -47,7 +48,7 @@ func CheckIdentity(ctx iris.Context) {
 		token = author
 	}
 	tokenService := consul.ObtainHighestWeightInServiceList(config.Sysconfig.Detection.TokenService)
-	url := tokenService.Proto + "://" + tokenService.Host + config.Sysconfig.Detection.TokenCheckServiceApiUrl
+	url := tokenService.Proto + "://" + tokenService.Host + fmt.Sprintf("%d", tokenService.Port) + config.Sysconfig.Detection.TokenCheckServiceApiUrl
 	// 获取解析后的token信息
 	respBody, err := proxy.GetParseToken(token, url)
 	if err != nil {

@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"fmt"
+
 	"github.com/kataras/iris/v12"
 	"github.com/lm1996-mojor/go-core-library/config"
 	_const "github.com/lm1996-mojor/go-core-library/const"
@@ -27,7 +29,7 @@ func Verify(ctx iris.Context) {
 	}
 	// 权限系统-鉴权路径
 	authService := consul.ObtainHighestWeightInServiceList(config.Sysconfig.Detection.AuthService)
-	url := authService.Proto + "://" + authService.Host + config.Sysconfig.Detection.AuthCheckServiceApiUrl
+	url := authService.Proto + "://" + authService.Host + fmt.Sprintf("%d", authService.Port) + config.Sysconfig.Detection.AuthCheckServiceApiUrl
 	actionUrl := url + "?reqUrl=" + reqUrl
 	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.TokenOriginal)
 	if !ok {

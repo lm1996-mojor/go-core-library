@@ -42,7 +42,11 @@ redis:
 
 detection:
   token: true
-  authentication: true
+  tokenService: "serviceName"
+  tokenCheckServiceApiUrl: "token_check_url"
+  authentication: false
+  authService: "serviceName"
+  authCheckServiceApiUrl: "auth_check_url"
 
 systemEnv:
   env: "dev"
