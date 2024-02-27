@@ -3,6 +3,7 @@ package tasker_factory
 import (
 	"github.com/kataras/iris/v12"
 	"github.com/lm1996-mojor/go-core-library/config"
+	"github.com/lm1996-mojor/go-core-library/consul"
 	"github.com/lm1996-mojor/go-core-library/global"
 	"github.com/lm1996-mojor/go-core-library/log"
 )
@@ -27,7 +28,7 @@ func jobRun() {
 			spec = config.Sysconfig.Consul.Service.Spec
 		}
 		c := GetCornTasker()
-		_, err := c.AddFunc(spec, ObtainSpecifyingConfigServicesFromTheRegistrationCenter)
+		_, err := c.AddFunc(spec, consul.ObtainSpecifyingConfigServicesFromTheRegistrationCenter)
 		if err != nil {
 			panic("定时任务添加失败" + err.Error())
 		}
