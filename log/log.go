@@ -14,9 +14,11 @@ import (
 const runLevel = -5
 
 func Init(app *iris.Application) {
+	log.Info().Msg("日志组件初始化....")
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	output := zerolog.ConsoleWriter{Out: os.Stdout, NoColor: false, TimeFormat: "2006/01/02 15:04:05"}
 	log.Logger = log.Output(output)
+	log.Info().Msg("日志组件初始化完成")
 }
 
 func init() {

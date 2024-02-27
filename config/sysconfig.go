@@ -88,7 +88,7 @@ type dataBase struct {
 }
 
 // 启动级别 （值越小，优先级越高）
-const runLevel = -11
+const runLevel = -100
 
 // Sysconfig 将私有的全局配置结构体公开化
 var Sysconfig = sysconfig{}
