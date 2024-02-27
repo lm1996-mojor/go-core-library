@@ -21,9 +21,9 @@ import (
 func CheckIdentity(ctx iris.Context) {
 	//获取请求路径
 	utils.PrintCallerInfo(ctx)
-	reqPath := ctx.Path()
+	reqPath := ctx.Request().RequestURI
 	ctx.Values().Set("pass_label", "N")
-	if white_list.InList(reqPath, 1) {
+	if white_list.InList(reqPath, 1) || strings.Contains(reqPath, "platform_management") {
 		ctx.Values().Set("pass_label", "Y")
 		ctx.Next()
 		return
