@@ -16,6 +16,11 @@ func init() {
 
 func Init(app *iris.Application) {
 	log.Info("定时任务初始化....")
+	go jobRun()
+	log.Info("定时任务初始化完成")
+}
+
+func jobRun() {
 	if config.Sysconfig.Consul.EnableObtainService {
 		spec := "*/3 * * * *"
 		if config.Sysconfig.Consul.Service.Spec != "" && config.Sysconfig.Consul.Service.Spec != "null" && len(config.Sysconfig.Consul.Service.Spec) > 0 {
@@ -28,5 +33,4 @@ func Init(app *iris.Application) {
 		}
 		c.Run()
 	}
-	log.Info("定时任务初始化完成")
 }
