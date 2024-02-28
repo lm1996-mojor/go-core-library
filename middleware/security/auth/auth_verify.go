@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/kataras/iris/v12"
 	"github.com/lm1996-mojor/go-core-library/config"
@@ -29,6 +30,11 @@ func Verify(ctx iris.Context) {
 	}
 	// 权限系统-鉴权路径
 	authService := consul.ObtainHighestWeightInServiceList(config.Sysconfig.Detection.AuthService)
+	if reflect.DeepEqual(authService, consul.ServiceLibrary{}) {
+		log.Error("权限检查：没有找到对应的权限服务器")
+		ctx.JSON(rest.Result{Code: 404, Msg: "没有找到服务器", Data: nil, MsgType: rest.ERROR})
+		return
+	}
 	url := authService.Proto + "://" + authService.Host + ":" + fmt.Sprintf("%d", authService.Port) + config.Sysconfig.Detection.AuthCheckServiceApiUrl
 	actionUrl := url + "?reqUrl=" + reqUrl
 	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.TokenOriginal)

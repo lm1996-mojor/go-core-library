@@ -3,6 +3,7 @@ package token
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/kataras/iris/v12"
@@ -48,6 +49,11 @@ func CheckIdentity(ctx iris.Context) {
 		token = author
 	}
 	tokenService := consul.ObtainHighestWeightInServiceList(config.Sysconfig.Detection.TokenService)
+	if reflect.DeepEqual(tokenService, consul.ServiceLibrary{}) {
+		clog.Error("token检查：没有找到对应的token服务器")
+		ctx.JSON(rest.Result{Code: 404, Msg: "没有找到服务器", Data: nil, MsgType: rest.ERROR})
+		return
+	}
 	url := tokenService.Proto + "://" + tokenService.Host + ":" + fmt.Sprintf("%d", tokenService.Port) + config.Sysconfig.Detection.TokenCheckServiceApiUrl
 	// 获取解析后的token信息
 	respBody, err := proxy.GetParseToken(token, url)
