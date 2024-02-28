@@ -7,7 +7,7 @@ import (
 )
 
 func AddBodyParam(srcBody io.Reader, addParam map[string]interface{}) (newBody io.Reader) {
-	var srcBodyMap map[string]interface{}
+	srcBodyMap := make(map[string]interface{})
 	b, _ := io.ReadAll(srcBody)
 	if len(b) > 0 {
 		err := json.Unmarshal(b, &srcBodyMap)
