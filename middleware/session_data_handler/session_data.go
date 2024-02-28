@@ -25,7 +25,9 @@ func SessionDataInit(ctx iris.Context) {
 	}
 	param := make(map[string]interface{})
 	all, _ := io.ReadAll(ctx.Request().Body)
-	json.Unmarshal(all, &param)
+	if len(all) > 0 {
+		json.Unmarshal(all, &param)
+	}
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientID, param[_const.ClientID].(string))
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientCode, param[_const.ClientCode].(string))
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserId, param[_const.UserId].(string))
