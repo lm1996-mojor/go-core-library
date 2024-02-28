@@ -9,9 +9,11 @@ import (
 func AddBodyParam(srcBody io.Reader, addParam map[string]interface{}) (newBody io.Reader) {
 	var srcBodyMap map[string]interface{}
 	b, _ := io.ReadAll(srcBody)
-	err := json.Unmarshal(b, &srcBodyMap)
-	if err != nil {
-		panic(err)
+	if len(b) > 0 {
+		err := json.Unmarshal(b, &srcBodyMap)
+		if err != nil {
+			panic(err)
+		}
 	}
 	for key, value := range addParam {
 		srcBodyMap[key] = value
