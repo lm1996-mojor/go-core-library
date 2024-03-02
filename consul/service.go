@@ -16,7 +16,16 @@ func Register() string {
 	protocol := "http://"
 	host := ""
 	ipAddrList := sys_environment.GetInternalIP()
-	host = strings.Split(ipAddrList[0], "/")[0]
+	networkSegment := strings.Split(libConfig.Sysconfig.Consul.Addr, ".")[2]
+	host = ""
+	for _, ip := range ipAddrList {
+		if strings.Split(ip, ".")[2] == networkSegment {
+			host = ip
+		}
+	}
+	if host == "" {
+		panic("您当前计算机所处的网段，consul无法连接，当前consul的网络ip为：" + libConfig.Sysconfig.Consul.Addr + "，请将您当前的计算机所处网络，与consul同步")
+	}
 	// 解决服务器不在同一个网段的问题
 	//if libConfig.Sysconfig.SystemEnv.Env != "prod" {
 	//	protocol = "http" + protocol
