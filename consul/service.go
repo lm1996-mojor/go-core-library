@@ -20,7 +20,7 @@ func Register() string {
 	host = ""
 	for _, ip := range ipAddrList {
 		if strings.Split(ip, ".")[2] == networkSegment {
-			host = ip
+			host = strings.Split(ip, "/")[0]
 		}
 	}
 	if host == "" {
