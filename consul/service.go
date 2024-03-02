@@ -21,7 +21,7 @@ func Register() string {
 	for _, ip := range ipAddrList {
 		if strings.Split(ip, ".")[2] == networkSegment {
 			host = strings.Split(ip, "/")[0]
-
+			break
 		}
 	}
 	if host == "" {
