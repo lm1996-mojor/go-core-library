@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+
+	_const "github.com/lm1996-mojor/go-core-library/const"
 )
 
 func AddBodyParam(srcBody io.Reader, addParam map[string]interface{}) (newBody io.Reader) {
-	srcBodyMap := make(map[string]interface{})
+	var srcBodyMap interface{}
+	//var srcBodyMap interface{}
 	b, _ := io.ReadAll(srcBody)
 	if len(b) > 0 {
 		err := json.Unmarshal(b, &srcBodyMap)
@@ -15,10 +18,8 @@ func AddBodyParam(srcBody io.Reader, addParam map[string]interface{}) (newBody i
 			panic(err)
 		}
 	}
-	for key, value := range addParam {
-		srcBodyMap[key] = value
-	}
-	marshal, err1 := json.Marshal(srcBodyMap)
+	addParam[_const.OriginalReqParam] = srcBodyMap
+	marshal, err1 := json.Marshal(addParam)
 	if err1 != nil {
 		panic(err1)
 	}

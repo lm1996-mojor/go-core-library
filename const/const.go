@@ -17,4 +17,5 @@ const (
 	ClientCode                               = "_client_code"            // 租户唯一编码获取key名称
 	TokenOriginal                            = "_token_original"         // token原文
 	WebSocketTokenStoreHttpRequestHeaderName = "Sec-Websocket-Protocol"  // webSocket存储token请求头名称
+	OriginalReqParam                         = "original_req_param"      // 原请求数据参数
 )

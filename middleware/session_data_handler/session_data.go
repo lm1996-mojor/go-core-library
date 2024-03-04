@@ -33,7 +33,13 @@ func SessionDataInit(ctx iris.Context) {
 	//将解析后的token中的用户信息存入local store
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.JwtData, param[_const.JwtData].(map[string]interface{}))
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.TokenOriginal, param[_const.TokenOriginal].(string))
-	marshal, _ := json.Marshal(param)
+	delete(param, _const.ClientID)
+	delete(param, _const.ClientCode)
+	delete(param, _const.UserId)
+	delete(param, _const.UserCode)
+	delete(param, _const.JwtData)
+	delete(param, _const.TokenOriginal)
+	marshal, _ := json.Marshal(param[_const.OriginalReqParam])
 	ctx.Request().Body = io.NopCloser(bytes.NewReader(marshal))
 	ctx.Next()
 }
