@@ -16,6 +16,7 @@ import (
 	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
 	"github.com/lm1996-mojor/go-core-library/proxy"
 	"github.com/lm1996-mojor/go-core-library/rest"
+	"github.com/lm1996-mojor/go-core-library/store"
 	"github.com/lm1996-mojor/go-core-library/utils"
 	"github.com/lm1996-mojor/go-core-library/utils/http_utils"
 )
@@ -92,22 +93,25 @@ func CheckIdentity(ctx iris.Context) {
 		if config.Sysconfig.Detection.Authentication {
 			ctx.Values().Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+"isSuperAdmin", tokenClaims["isSuperAdmin"])
 		}
-		//将从token中获取到的租户id存入tls中，用于动态数据源
-		//store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientID, tokenClaims[_const.ClientID].(string))
-		//store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientCode, tokenClaims[_const.ClientCode].(string))
-		//store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserId, tokenClaims[_const.UserId].(string))
-		//store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserCode, tokenClaims[_const.UserCode].(string))
-		////将解析后的token中的用户信息存入local store
-		//store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.JwtData, tokenClaims)
-		//store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.TokenOriginal, token)
-		addParamMap := make(map[string]interface{})
-		addParamMap[_const.ClientID] = tokenClaims[_const.ClientID].(string)
-		addParamMap[_const.ClientCode] = tokenClaims[_const.ClientCode].(string)
-		addParamMap[_const.UserId] = tokenClaims[_const.UserId].(string)
-		addParamMap[_const.UserCode] = tokenClaims[_const.UserCode].(string)
-		addParamMap[_const.JwtData] = tokenClaims
-		addParamMap[_const.TokenOriginal] = token
-		ctx.Request().Body = io.NopCloser(http_utils.AddBodyParam(ctx.Request().Body, addParamMap))
+		if config.Sysconfig.Detection.Token && config.Sysconfig.App.Name != "lke_gateway" {
+			//将从token中获取到的租户id存入tls中，用于动态数据源
+			store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientID, tokenClaims[_const.ClientID].(string))
+			store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientCode, tokenClaims[_const.ClientCode].(string))
+			store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserId, tokenClaims[_const.UserId].(string))
+			store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserCode, tokenClaims[_const.UserCode].(string))
+			//将解析后的token中的用户信息存入local store
+			store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.JwtData, tokenClaims)
+			store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.TokenOriginal, token)
+		} else {
+			addParamMap := make(map[string]interface{})
+			addParamMap[_const.ClientID] = tokenClaims[_const.ClientID].(string)
+			addParamMap[_const.ClientCode] = tokenClaims[_const.ClientCode].(string)
+			addParamMap[_const.UserId] = tokenClaims[_const.UserId].(string)
+			addParamMap[_const.UserCode] = tokenClaims[_const.UserCode].(string)
+			addParamMap[_const.JwtData] = tokenClaims
+			addParamMap[_const.TokenOriginal] = token
+			ctx.Request().Body = io.NopCloser(http_utils.AddBodyParam(ctx.Request().Body, addParamMap))
+		}
 		ctx.Next()
 	} else {
 		ctx.JSON(result)

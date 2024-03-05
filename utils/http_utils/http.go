@@ -17,8 +17,8 @@ func AddBodyParam(srcBody io.Reader, addParam map[string]interface{}) (newBody i
 		if err != nil {
 			panic(err)
 		}
+		addParam[_const.OriginalReqParam] = srcBodyMap
 	}
-	addParam[_const.OriginalReqParam] = srcBodyMap
 	marshal, err1 := json.Marshal(addParam)
 	if err1 != nil {
 		panic(err1)
