@@ -21,6 +21,7 @@ type sysconfig struct {
 		GlobalReqPathPrefix string // 当前服务的全局请求的地址前缀
 	}
 	Consul struct {
+		ComponentUseMode    string   // 组件使用模式（注册：r 发现服务：sd）
 		Addr                string   // 服务治理中心的地址
 		Port                int      // 服务治理中心的端口
 		EnableObtainService bool     // 开启获取服务工具
