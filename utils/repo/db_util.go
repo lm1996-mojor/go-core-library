@@ -65,6 +65,13 @@ func ObtainClientDbTx(ctx iris.Context) (db *gorm.DB) {
 // @Param txFlag 是否获取带事务的数据源标识（true 是  false 否）
 func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
 	clientId, err := ObtainClientId(ctx)
+	if config.Sysconfig.App.Name == "platform_management" {
+		if txFlag {
+			return dbLib.GetCustomDbTxByDbName(ctx, "platform_management")
+		} else {
+			return dbLib.GetDbByName("platform_management")
+		}
+	}
 	if err != nil {
 		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
 		//panic("服务器错误")
