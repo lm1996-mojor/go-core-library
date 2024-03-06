@@ -17,14 +17,18 @@ func Init(app *iris.Application) {
 	if libConfig.Sysconfig.Consul.ComponentUseMode == "r" {
 		if libConfig.Sysconfig.Consul.Addr != "" && libConfig.Sysconfig.Consul.Addr != "null" && len(libConfig.Sysconfig.Consul.Addr) > 0 {
 			host := ""
-			ipAddrList := sys_environment.GetInternalIP()
+			ipAddrList := make([]string, 0)
 			if libConfig.Sysconfig.SystemEnv.Env != "prod" {
-				host = strings.ReplaceAll(strings.Split(ipAddrList[0], "/")[0], ".", "_")
+				ipAddrList = sys_environment.GetInternalIP()
 			} else {
-				host = strings.ReplaceAll(strings.Split(sys_environment.GetExternal(), "/")[0], ".", "_")
+				ipAddrList = append(ipAddrList, sys_environment.GetExternal())
 			}
+			log.Infof("%v", ipAddrList)
+			if strings.Contains(ipAddrList[0], "/") {
+				ipAddrList[0] = strings.Split(ipAddrList[0], "/")[0]
+			}
+			host = strings.ReplaceAll(ipAddrList[0], ".", "_")
 			searchConditionValue := "ID contains " + libConfig.Sysconfig.App.Name + "_" + host + "_" + libConfig.Sysconfig.App.Port
-
 			consulServiceInfoList, err := FindServiceList(searchConditionValue)
 			if err != nil {
 				panic("查询服务列表失败：" + err.Error())
