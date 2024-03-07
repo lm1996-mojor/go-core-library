@@ -33,11 +33,15 @@ func CheckIdentity(ctx iris.Context) {
 	}
 	//获取token(根据请求头信息获取不同形式的token：http/websocket)
 	author := ""
-	if strings.Contains(ctx.Request().Proto, "HTTP") {
-		author = ctx.GetHeader(_const.TokenName)
-	} else {
+	author = ctx.GetHeader(_const.TokenName)
+	if author == "" {
 		author = ctx.GetHeader(_const.WebSocketTokenStoreHttpRequestHeaderName)
 	}
+	//if strings.Contains(ctx.Request().Proto, "HTTP") {
+	//	author = ctx.GetHeader(_const.TokenName)
+	//} else {
+	//	author = ctx.GetHeader(_const.WebSocketTokenStoreHttpRequestHeaderName)
+	//}
 	if author == "" || author == "null" || len(author) <= 0 {
 		ctx.JSON(rest.FailCustom(401, "尚未登录,请登录后再进行操作", rest.ERROR))
 		return
