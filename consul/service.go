@@ -18,12 +18,21 @@ func Register() string {
 	ipAddrList := sys_environment.GetInternalIP()
 	networkSegment := strings.Split(libConfig.Sysconfig.Consul.Addr, ".")[2]
 	host = ""
-	for _, ip := range ipAddrList {
-		if strings.Split(ip, ".")[2] == networkSegment {
-			host = strings.Split(ip, "/")[0]
-			break
+	if len(ipAddrList) > 1 {
+		for _, ip := range ipAddrList {
+			if networkSegment == "127.0.0.1" || networkSegment == "localhost" {
+				host = ip
+				break
+			}
+			if strings.Split(ip, ".")[2] == networkSegment {
+				host = ip
+				break
+			}
 		}
+	} else {
+		host = ipAddrList[0]
 	}
+
 	if host == "" {
 		panic("您当前计算机所处的网段，consul无法连接，当前consul的网络ip为：" + libConfig.Sysconfig.Consul.Addr + "，请将您当前的计算机所处网络，与consul同步")
 	}
