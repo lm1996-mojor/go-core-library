@@ -1,7 +1,9 @@
 package sys_environment
 
 import (
+	"fmt"
 	"io"
+	sdkNet "net"
 	"net/http"
 	"os"
 	"runtime"
@@ -12,7 +14,6 @@ import (
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
-	"github.com/shirou/gopsutil/v3/net"
 )
 
 func GetHostInfo() *host.InfoStat {
@@ -100,11 +101,31 @@ func GetIOCounters() map[string]disk.IOCountersStat {
  * @return []net.ConnectionStat 网络信息数组
  */
 func GetInternalIP() (localIp []string) {
-	info, _ := net.Interfaces()
-	for _, stat := range info {
-		for _, addr := range stat.Addrs {
-			if strings.Contains(addr.Addr, "24") {
-				localIp = append(localIp, addr.Addr)
+	interfaces, err := sdkNet.Interfaces()
+	if err != nil {
+		fmt.Println("获取网卡信息出错：", err)
+		return nil
+	}
+	ipHeader := ""
+	switch runtime.GOOS {
+	case "windows":
+		ipHeader = "192"
+	case "linux":
+		ipHeader = "172"
+	}
+	for _, iface := range interfaces {
+		addrs, err1 := iface.Addrs()
+		if err1 != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			ipNet, ok := addr.(*sdkNet.IPNet)
+			if ok && !ipNet.IP.IsLoopback() {
+				if ipNet.IP.To4() != nil {
+					if strings.Split(ipNet.IP.String(), ".")[0] == ipHeader {
+						localIp = append(localIp, ipNet.IP.String())
+					}
+				}
 			}
 		}
 	}
@@ -123,4 +144,42 @@ func GetExternal() string {
 	//buf.ReadFrom(resp.Body)
 	//s := buf.String()
 	return string(content)
+}
+
+func GetIp() (ip string) {
+	interfaces, err := sdkNet.Interfaces()
+	if err != nil {
+		fmt.Println("获取网卡信息出错：", err)
+		return ""
+	}
+	ipHeader := ""
+	switch runtime.GOOS {
+	case "windows":
+		ipHeader = "192"
+	case "linux":
+		ipHeader = "172"
+	}
+	endFlag := false
+	for _, iface := range interfaces {
+		addrs, err1 := iface.Addrs()
+		if err1 != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			ipNet, ok := addr.(*sdkNet.IPNet)
+			if ok && !ipNet.IP.IsLoopback() {
+				if ipNet.IP.To4() != nil {
+					if strings.Split(ipNet.IP.String(), ".")[0] == ipHeader {
+						ip = ipNet.IP.String()
+						endFlag = true
+						break
+					}
+				}
+			}
+		}
+		if endFlag {
+			break
+		}
+	}
+	return ip
 }

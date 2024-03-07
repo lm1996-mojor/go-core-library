@@ -17,17 +17,23 @@ func Init(app *iris.Application) {
 	if libConfig.Sysconfig.Consul.ComponentUseMode == "r" {
 		if libConfig.Sysconfig.Consul.Addr != "" && libConfig.Sysconfig.Consul.Addr != "null" && len(libConfig.Sysconfig.Consul.Addr) > 0 {
 			host := ""
-			ipAddrList := make([]string, 0)
+			//ipAddrList := make([]string, 0)
+			ipAddrList := ""
 			if libConfig.Sysconfig.SystemEnv.Env != "prod" {
-				ipAddrList = sys_environment.GetInternalIP()
+				ipAddrList = sys_environment.GetIp()
 			} else {
-				ipAddrList = append(ipAddrList, sys_environment.GetExternal())
+				//ipAddrList = append(ipAddrList, sys_environment.GetExternal())
+				ipAddrList = sys_environment.GetExternal()
 			}
-			log.Infof("%v", ipAddrList)
-			if strings.Contains(ipAddrList[0], "/") {
-				ipAddrList[0] = strings.Split(ipAddrList[0], "/")[0]
+			log.Infof("%s", ipAddrList)
+			//if strings.Contains(ipAddrList[0], "/") {
+			//	ipAddrList[0] = strings.Split(ipAddrList[0], "/")[0]
+			//}
+			//host = strings.ReplaceAll(ipAddrList[0], ".", "_")
+			if strings.Contains(ipAddrList, "/") {
+				ipAddrList = strings.Split(ipAddrList, "/")[0]
 			}
-			host = strings.ReplaceAll(ipAddrList[0], ".", "_")
+			host = strings.ReplaceAll(ipAddrList, ".", "_")
 			searchConditionValue := "ID contains " + libConfig.Sysconfig.App.Name + "_" + host + "_" + libConfig.Sysconfig.App.Port
 			consulServiceInfoList, err := FindServiceList(searchConditionValue)
 			if err != nil {
