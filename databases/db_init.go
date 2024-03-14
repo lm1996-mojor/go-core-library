@@ -175,7 +175,7 @@ func ConnectDB(dsn string) (db *gorm.DB, err error) {
 
 	//配置连接对象的连接信息
 	sqlDB.SetConnMaxLifetime(time.Hour)
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(30)
+	sqlDB.SetMaxIdleConns(100)
+	sqlDB.SetMaxOpenConns(300)
 	return
 }

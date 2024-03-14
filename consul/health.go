@@ -18,5 +18,6 @@ func NewController() *Controller {
 /** 服务健康检查*/
 func (c *Controller) GetSerHealth() rest.Result {
 	log.Info("服务健康检查")
+	CheckFlag = true
 	return rest.SuccessResult(nil)
 }

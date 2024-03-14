@@ -7,7 +7,10 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	localConfig "github.com/lm1996-mojor/go-core-library/config"
+	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/store"
+	"github.com/lm1996-mojor/go-core-library/tasker_factory"
 )
 
 func GetClient() *api.Client {
@@ -20,6 +23,7 @@ func GetClient() *api.Client {
 	return client
 }
 
+var CheckFlag bool
 var ServiceLib []ServiceLibrary
 
 type ServiceLibrary struct {
@@ -52,6 +56,41 @@ func ObtainHighestWeightInServiceList(serviceName string) ServiceLibrary {
 	return FindSpecifyingServiceList(serviceName)[0]
 }
 
+func TimedExecution() {
+	if localConfig.Sysconfig.Consul.EnableObtainService {
+		spec := "@every 11s"
+		if localConfig.Sysconfig.Consul.Service.Spec != "" && localConfig.Sysconfig.Consul.Service.Spec != "null" && len(localConfig.Sysconfig.Consul.Service.Spec) > 0 {
+			spec = localConfig.Sysconfig.Consul.Service.Spec
+		}
+		task := tasker_factory.InitTask()
+		OSCSFTRCTaskId, err := task.TaskBody.AddFunc(spec, ObtainSpecifyingConfigServicesFromTheRegistrationCenter)
+		if err != nil {
+			panic("添加发现服务定时任务添加失败" + err.Error())
+		}
+		task.TaskId = OSCSFTRCTaskId
+		task.TaskDesc = "发现服务定时任务"
+		tasker_factory.TaskMap["ObtainSpecifyingConfigServicesFromTheRegistrationCenter"] = task
+
+		task = tasker_factory.InitTask()
+		LCSHTaskId, err1 := task.TaskBody.AddFunc(spec, LocalCheckServiceHealth)
+		if err1 != nil {
+			panic("添加本地服务状态检查定时任务添加失败" + err.Error())
+		}
+		task.TaskId = LCSHTaskId
+		task.TaskDesc = "本地服务状态检查定时任务"
+		tasker_factory.TaskMap["LocalCheckServiceHealth"] = task
+
+		task = tasker_factory.InitTask()
+		RCFTaskId, err2 := task.TaskBody.AddFunc(spec, RestartCheckFlag)
+		if err2 != nil {
+			panic("添加重置检查目标定时任务添加失败" + err.Error())
+		}
+		task.TaskId = RCFTaskId
+		task.TaskDesc = "重置检查目标定时任务"
+		tasker_factory.TaskMap["RestartCheckFlag"] = task
+	}
+}
+
 func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
 	log.Info("获取指定服务列表...")
 	ServiceLib = make([]ServiceLibrary, 0)
@@ -70,7 +109,6 @@ func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
 			Proto:           "http",
 			Weight:          1, // TODO： 后面要动态更改当前的权重情况
 		})
-
 	}
 	if len(localConfig.Sysconfig.Consul.Service.DesignatedServices) <= 0 {
 		ServiceLib = serviceList
@@ -83,6 +121,53 @@ func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
 			}
 		}
 	}
-
 	log.Info("获取指定服务列表完成")
+}
+
+func LocalCheckServiceHealth() {
+	var FailCheckCount int
+	log.Info("本地检查服务健康情况...")
+	if FailCheckCount >= 3 {
+		// 重新注册服务
+		log.Info("当前服务已经无法连接到服务中心3次，已停止重新注册服务相关的定时任务")
+		err := tasker_factory.StopAndRemoveTask("LocalCheckServiceHealth")
+		if err != nil {
+			log.Error(err.Error())
+		}
+		err = tasker_factory.StopAndRemoveTask("RestartCheckFlag")
+		if err != nil {
+			log.Error(err.Error())
+		}
+		consulServiceId := Register()
+		store.Set(_const.ConsulEndId, consulServiceId)
+		spec := "@every 11s" // 需要根据配置文件中的checkInterval参数进行动态修改: 增加1秒
+		task := tasker_factory.InitTask()
+		LCSHTaskId, err1 := task.TaskBody.AddFunc(spec, LocalCheckServiceHealth)
+		if err1 != nil {
+			panic("添加本地服务状态检查定时任务添加失败" + err.Error())
+		}
+		task.TaskId = LCSHTaskId
+		task.TaskDesc = "本地服务状态检查定时任务"
+		tasker_factory.TaskMap["LocalCheckServiceHealth"] = task
+
+		task = tasker_factory.InitTask()
+		RCFTaskId, err2 := task.TaskBody.AddFunc(spec, RestartCheckFlag)
+		if err2 != nil {
+			panic("添加重置检查目标定时任务添加失败" + err.Error())
+		}
+		task.TaskId = RCFTaskId
+		task.TaskDesc = "重置检查目标定时任务"
+		tasker_factory.TaskMap["RestartCheckFlag"] = task
+		tasker_factory.BatchedRunTasker()
+		return
+	}
+	if !CheckFlag {
+		FailCheckCount++
+	}
+	FailCheckCount = 0
+	log.Info("检查完成...")
+}
+
+func RestartCheckFlag() {
+	CheckFlag = false
 }

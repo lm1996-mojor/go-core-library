@@ -46,6 +46,10 @@ func Warn(msg string) {
 	log.Warn().Msg(msg)
 }
 
+func WarnF(format string, v ...interface{}) {
+	log.Warn().Msgf(format, v)
+}
+
 // Error log in Error level
 func Error(msg string) {
 	log.Error().Msg(msg)

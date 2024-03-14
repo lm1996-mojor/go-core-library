@@ -4,10 +4,11 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-func GetCornTasker(opts ...cron.Option) *cron.Cron {
-	if len(opts) > 0 {
-		return cron.New(opts...)
-	} else {
-		return cron.New()
-	}
+var TaskMap = make(map[string]Task)
+
+type Task struct {
+	TaskBody   *cron.Cron   // 任务主体对象
+	TaskId     cron.EntryID // 任务启动后的id
+	TaskDesc   string       // 任务描述
+	TaskStatus bool         // 当前任务状态
 }

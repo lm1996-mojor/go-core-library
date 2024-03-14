@@ -47,9 +47,10 @@ func Init(app *iris.Application) {
 	} else {
 		log.Info("无服务治理要求...")
 	}
+	TimedExecution()
 }
 
-const runLevel = 10
+const runLevel = -2
 
 func init() {
 	global.RegisterInit(global.Initiator{Action: Init, Level: runLevel})

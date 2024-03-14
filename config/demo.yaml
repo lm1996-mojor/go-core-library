@@ -9,17 +9,19 @@ app:
 databases:
   clientEnable: false
   masterDbName: "One of the following dbName"
+  PDns: "仅在生产线上使用"
+  EnableDbDynamicManage: true/false
   dbInfoList:
-    - host: "host"
-      port: "port"
-      dbName: "dbName"
-      dbUser: "dbUser"
-      dbPass: "dbPass"
-    - host: "host"
-      port: "port"
-      dbName: "dbName"
-      dbUser: "dbUser"
-      dbPass: "dbPass"
+    - host: "host1"
+      port: "port1"
+      dbName: "dbName1"
+      dbUser: "dbUser1"
+      dbPass: "dbPass1"
+    - host: "host2"
+      port: "port2"
+      dbName: "dbName2"
+      dbUser: "dbUser2"
+      dbPass: "dbPass2"
 
 consul:
   addr: "192.168.0.103"
@@ -30,7 +32,7 @@ consul:
     checkInterval: "10s"
     invalidServiceLogoutTime: "20s"
   service:
-    spec: "*/3 * * * *"
+    spec: "@every 11s"
     designatedServices:
       - serviceName: "serv1"
         loadBalanceMode: "rr"
