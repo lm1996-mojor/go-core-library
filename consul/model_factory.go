@@ -57,12 +57,13 @@ func ObtainHighestWeightInServiceList(serviceName string) ServiceLibrary {
 }
 
 func TimedExecution() {
+	task := tasker_factory.InitTask()
+	spec := "@every 11s"
 	if localConfig.Sysconfig.Consul.EnableObtainService {
-		spec := "@every 11s"
 		if localConfig.Sysconfig.Consul.Service.Spec != "" && localConfig.Sysconfig.Consul.Service.Spec != "null" && len(localConfig.Sysconfig.Consul.Service.Spec) > 0 {
 			spec = localConfig.Sysconfig.Consul.Service.Spec
 		}
-		task := tasker_factory.InitTask()
+
 		OSCSFTRCTaskId, err := task.TaskBody.AddFunc(spec, ObtainSpecifyingConfigServicesFromTheRegistrationCenter)
 		if err != nil {
 			panic("添加发现服务定时任务添加失败" + err.Error())
@@ -71,24 +72,24 @@ func TimedExecution() {
 		task.TaskDesc = "发现服务定时任务"
 		tasker_factory.TaskMap["ObtainSpecifyingConfigServicesFromTheRegistrationCenter"] = task
 
-		task = tasker_factory.InitTask()
-		LCSHTaskId, err1 := task.TaskBody.AddFunc(spec, LocalCheckServiceHealth)
-		if err1 != nil {
-			panic("添加本地服务状态检查定时任务添加失败" + err.Error())
-		}
-		task.TaskId = LCSHTaskId
-		task.TaskDesc = "本地服务状态检查定时任务"
-		tasker_factory.TaskMap["LocalCheckServiceHealth"] = task
-
-		task = tasker_factory.InitTask()
-		RCFTaskId, err2 := task.TaskBody.AddFunc(spec, RestartCheckFlag)
-		if err2 != nil {
-			panic("添加重置检查目标定时任务添加失败" + err.Error())
-		}
-		task.TaskId = RCFTaskId
-		task.TaskDesc = "重置检查目标定时任务"
-		tasker_factory.TaskMap["RestartCheckFlag"] = task
 	}
+	task = tasker_factory.InitTask()
+	LCSHTaskId, err1 := task.TaskBody.AddFunc(spec, LocalCheckServiceHealth)
+	if err1 != nil {
+		panic("添加本地服务状态检查定时任务添加失败" + err1.Error())
+	}
+	task.TaskId = LCSHTaskId
+	task.TaskDesc = "本地服务状态检查定时任务"
+	tasker_factory.TaskMap["LocalCheckServiceHealth"] = task
+
+	task = tasker_factory.InitTask()
+	RCFTaskId, err2 := task.TaskBody.AddFunc(spec, RestartCheckFlag)
+	if err2 != nil {
+		panic("添加重置检查目标定时任务添加失败" + err2.Error())
+	}
+	task.TaskId = RCFTaskId
+	task.TaskDesc = "重置检查目标定时任务"
+	tasker_factory.TaskMap["RestartCheckFlag"] = task
 }
 
 func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
