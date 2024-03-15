@@ -1,10 +1,13 @@
 package tasker_factory
 
 import (
+	"sync"
+
 	"github.com/robfig/cron/v3"
 )
 
-var TaskMap = make(map[string]Task)
+var TaskMap sync.Map
+var taskKeys = make([]string, 0) // 用于存储map的key用于顺序遍历
 
 type Task struct {
 	TaskBody   *cron.Cron   // 任务主体对象

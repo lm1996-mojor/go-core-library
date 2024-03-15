@@ -15,6 +15,6 @@ func init() {
 
 func Init(app *iris.Application) {
 	log.Info("定时任务初始化....")
-	BatchedRunTasker()
+	go BatchedRunTasker()
 	log.Info("定时任务初始化完成")
 }

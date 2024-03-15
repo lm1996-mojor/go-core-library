@@ -11,12 +11,17 @@ import (
 	"github.com/spf13/cast"
 )
 
-func GetTaskId(key string) cron.EntryID {
-	return TaskMap[key].TaskId
-}
-
-func GetTaskBody(key string) *cron.Cron {
-	return TaskMap[key].TaskBody
+func AddTask(taskStoreKey, taskDesc, spec string, cmd func(), opts ...cron.Option) error {
+	task := InitTask(opts...)
+	taskId, err := task.TaskBody.AddFunc(spec, cmd)
+	if err != nil {
+		return err
+	}
+	task.TaskId = taskId
+	task.TaskDesc = taskDesc
+	TaskMap.Store(taskStoreKey, task)
+	taskKeys = append(taskKeys, taskStoreKey)
+	return nil
 }
 
 func InitTask(opts ...cron.Option) Task {
@@ -30,18 +35,18 @@ func InitTask(opts ...cron.Option) Task {
 }
 
 func BatchedRunTasker() {
-	for _, t := range TaskMap {
-		if t.TaskStatus {
-			continue
-		}
-		t.TaskStatus = true
-		t.TaskBody.Run()
+	for _, key := range taskKeys {
+		value, _ := TaskMap.Load(key)
+		task := value.(Task)
+		task.TaskStatus = true
+		task.TaskBody.Run()
 	}
 }
 
 func StopTask(key string) {
-	t, ok := TaskMap[key]
+	v, ok := TaskMap.Load(key)
 	if ok {
+		t := v.(Task)
 		if t.TaskStatus {
 			t.TaskStatus = false
 			t.TaskBody.Stop()
@@ -61,7 +66,7 @@ func BatchedStopTask(keys []string) {
 }
 
 func RegexpStopTask(r *regexp.Regexp) {
-	for key, _ := range TaskMap {
+	for _, key := range taskKeys {
 		result := r.MatchString(key)
 		if result {
 			StopTask(key)
@@ -75,13 +80,17 @@ func StopAndRemoveTask(key string) error {
 }
 
 func RemoveTask(key string) error {
-	t := TaskMap[key]
+	v, ok := TaskMap.Load(key)
+	if !ok {
+		return errors.New("没有找到指定的任务: " + key)
+	}
+	t := v.(Task)
 	taskId := t.TaskId
 	if t.TaskStatus {
 		return errors.New("当前任务(" + key + ")id为：(" + cast.ToString(taskId) + ")正在执行中，请先停止任务。再进行移除")
 	}
 	t.TaskBody.Remove(taskId)
-	delete(TaskMap, key)
+	TaskMap.Delete(key)
 	log.Info("指定任务已移除：(" + key + ")，任务id为：[" + cast.ToString(taskId) + "]")
 	return nil
 }
@@ -94,7 +103,11 @@ func BatchRemoveTask(keys []string) error {
 		err := RemoveTask(key)
 		if err != nil {
 			errFlag = true
-			t := TaskMap[key]
+			v, ok := TaskMap.Load(key)
+			if !ok {
+				return errors.New("没有找到指定的任务: " + key)
+			}
+			t := v.(Task)
 			if i == len(keys)-1 {
 				replErrStr += fmt.Sprintf("[taskKey:[%s,id:(%d)]]", key, t.TaskId)
 			} else {
@@ -110,7 +123,7 @@ func BatchRemoveTask(keys []string) error {
 }
 
 func RegexpRemoveTask(r *regexp.Regexp) error {
-	for key, _ := range TaskMap {
+	for _, key := range taskKeys {
 		result := r.MatchString(key)
 		if result {
 			if err := RemoveTask(key); err != nil {
