@@ -5,6 +5,7 @@ import (
 
 	"github.com/lm1996-mojor/go-core-library/databases"
 	clog "github.com/lm1996-mojor/go-core-library/log"
+	"github.com/lm1996-mojor/go-core-library/tasker_factory"
 	"github.com/rs/zerolog/log"
 )
 
@@ -19,11 +20,17 @@ var tokenWhiteListRegex = make([]*regexp.Regexp, 0)
 
 func Init() {
 	clog.Info("初始化路由白名单")
+	AppendList(InitSystemList())
+	TimedExecution()
+	clog.Info("初始化完成")
+}
+
+func InitSystemList() []Url {
 	clog.Info("获取token白名单....")
 	defaultWhiteList := make([]Url, 0)
 	var tokenWhiteList []string
 	databases.GetDbByName("platform_management").Table("permissions_menu").
-		Where("is_white_list = ?", 1).Where("status = ?", 1).Select("req_url").Find(&tokenWhiteList)
+		Where("is_white_list = ?", 1).Where("req_url != '' or req_url not null").Where("status = ?", 1).Select("req_url").Find(&tokenWhiteList)
 	for _, url := range tokenWhiteList {
 		defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: "T"})
 	}
@@ -31,12 +38,43 @@ func Init() {
 	clog.Info("获取权限白名单....")
 	var authWhiteList []string
 	databases.GetDbByName("platform_management").Table("permissions_menu").
-		Where("is_enable_auth = ?", 1).Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4).
+		Where("is_enable_auth = ?", 1).Where("req_url != '' or req_url not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4).
 		Select("req_url").Find(&authWhiteList)
 	for _, url := range authWhiteList {
 		defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: "A"})
 	}
-	AppendList(defaultWhiteList)
+	return defaultWhiteList
+}
+
+func TimedExecution() {
+	spec := "@every 11s"
+	err := tasker_factory.AddTask("ObtainSpecifyingConfigServicesFromTheRegistrationCenter", "发现服务定时任务", spec, DelayRefreshList)
+	if err != nil {
+		panic("添加延迟刷新白名单列表定时任务添加失败" + err.Error())
+	}
+}
+
+func DelayRefreshList() {
+	authWhiteListRegex = make([]*regexp.Regexp, 0)
+	tokenWhiteListRegex = make([]*regexp.Regexp, 0)
+	items := InitSystemList()
+	var reg *regexp.Regexp
+	var err error
+	for _, item := range items {
+		clog.Infof("新增的白名单：", item)
+		reg, err = regexp.Compile(item.ReqUrl)
+		if err == nil {
+			if item.CheckType == "T" {
+				tokenWhiteListRegex = append(tokenWhiteListRegex, reg)
+			} else if item.CheckType == "A" {
+				authWhiteListRegex = append(authWhiteListRegex, reg)
+			} else {
+				log.Error().Msg("接口检查类型不符合规范，仅支持T（免token）/A（免鉴权）")
+			}
+		} else {
+			log.Error().Msg("invalid regex in white list: " + item.ReqUrl)
+		}
+	}
 }
 
 // AppendList append to URL white list
