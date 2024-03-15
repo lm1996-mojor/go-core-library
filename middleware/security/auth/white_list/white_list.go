@@ -55,6 +55,7 @@ func TimedExecution() {
 }
 
 func DelayRefreshList() {
+	clog.Info("白名单刷新中...")
 	authWhiteListRegex = make([]*regexp.Regexp, 0)
 	tokenWhiteListRegex = make([]*regexp.Regexp, 0)
 	items := InitSystemList()
@@ -75,6 +76,7 @@ func DelayRefreshList() {
 			log.Error().Msg("invalid regex in white list: " + item.ReqUrl)
 		}
 	}
+	clog.Info("白名单刷新完成")
 }
 
 // AppendList append to URL white list
