@@ -39,7 +39,7 @@ func BatchedRunTasker() {
 		value, _ := TaskMap.Load(key)
 		task := value.(Task)
 		task.TaskStatus = true
-		task.TaskBody.Run()
+		go task.TaskBody.Run()
 	}
 }
 

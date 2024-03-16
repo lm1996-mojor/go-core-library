@@ -34,7 +34,7 @@ func InitSystemList() []Url {
 		clog.Info("获取token白名单....")
 		var tokenWhiteList []string
 		databases.GetDbByName("platform_management").Table("permissions_menu").
-			Where("is_white_list = ?", 1).Where("req_url != '' or req_url not null").Where("status = ?", 1).Select("req_url").Find(&tokenWhiteList)
+			Where("is_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Select("req_url").Find(&tokenWhiteList)
 		for _, url := range tokenWhiteList {
 			defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: "T"})
 		}
@@ -44,7 +44,7 @@ func InitSystemList() []Url {
 		clog.Info("获取权限白名单....")
 		var authWhiteList []string
 		databases.GetDbByName("platform_management").Table("permissions_menu").
-			Where("is_enable_auth = ?", 2).Where("req_url != '' or req_url not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4).
+			Where("is_enable_auth = ?", 2).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4).
 			Select("req_url").Find(&authWhiteList)
 		for _, url := range authWhiteList {
 			defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: "A"})
