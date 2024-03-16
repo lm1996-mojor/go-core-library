@@ -6,7 +6,7 @@ import (
 	"github.com/lm1996-mojor/go-core-library/log"
 )
 
-const runLevel = -1
+const runLevel = 99
 
 // 初始化数据库操作
 func init() {
