@@ -98,14 +98,18 @@ func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
 			Weight:          1, // TODO： 后面要动态更改当前的权重情况
 		})
 	}
+
 	if len(localConfig.Sysconfig.Consul.Service.DesignatedServices) <= 0 {
 		ServiceLib = serviceList
 	} else {
+		designatedServiceMap := make(map[string]string)
+		for _, designatedService := range localConfig.Sysconfig.Consul.Service.DesignatedServices {
+			designatedServiceMap[designatedService.ServiceName] = designatedService.ServiceName
+		}
 		for _, list := range serviceList {
-			for _, designatedService := range localConfig.Sysconfig.Consul.Service.DesignatedServices {
-				if designatedService.ServiceName == list.ServiceName || localConfig.Sysconfig.Detection.AuthService == list.ServiceName || localConfig.Sysconfig.Detection.TokenService == list.ServiceName {
-					ServiceLib = append(ServiceLib, list)
-				}
+			_, ok := designatedServiceMap[list.ServiceName]
+			if ok {
+				ServiceLib = append(ServiceLib, list)
 			}
 		}
 	}
