@@ -36,10 +36,11 @@ func Init() {
 	}
 	if len(defaultWhiteList) > 0 {
 		AppendList(defaultWhiteList)
-		TimedExecution()
+
 	} else {
 		clog.Info("没有检测要求,无需初始化")
 	}
+	TimedExecution()
 	clog.Info("初始化完成")
 }
 
