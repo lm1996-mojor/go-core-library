@@ -123,6 +123,10 @@ func DelayRefreshList() {
 
 // AppendList append to URL white list
 func AppendList(items []Url) {
+	if len(items) <= 0 {
+		clog.WarnF("新增白名单，传入参数为0,items：", len(items))
+		return
+	}
 	var reg *regexp.Regexp
 	var err error
 	for _, item := range items {
