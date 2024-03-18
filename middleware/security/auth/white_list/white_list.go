@@ -56,7 +56,6 @@ func InitSystemList() []Url {
 
 func tokenWhiteListInit() []Url {
 	defaultWhiteList := make([]Url, 0)
-
 	clog.Info("获取token白名单....")
 	var tokenWhiteList []string
 	databases.GetDbByName("platform_management").Table("permissions_menu").

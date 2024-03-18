@@ -125,18 +125,10 @@ func LocalCheckServiceHealth() {
 		if err != nil {
 			log.Error(err.Error())
 		}
-		err = tasker_factory.StopAndRemoveTask("RestartCheckFlag")
-		if err != nil {
-			log.Error(err.Error())
-		}
 		consulServiceId := Register()
 		store.Set(_const.ConsulEndId, consulServiceId)
 		spec := "@every 11s" // 需要根据配置文件中的checkInterval参数进行动态修改: 增加1秒
 		err = tasker_factory.AddTask("LocalCheckServiceHealth", "本地服务状态检查定时任务", spec, LocalCheckServiceHealth)
-		if err != nil {
-			panic("添加本地服务状态检查定时任务添加失败" + err.Error())
-		}
-		err = tasker_factory.AddTask("RestartCheckFlag", "重置检查目标定时任务", spec, RestartCheckFlag)
 		if err != nil {
 			panic("添加本地服务状态检查定时任务添加失败" + err.Error())
 		}
@@ -153,4 +145,7 @@ func LocalCheckServiceHealth() {
 
 func RestartCheckFlag() {
 	CheckFlag = false
+	if err := tasker_factory.StopAndRemoveTask("RestartCheckFlag"); err != nil {
+		log.WarnF("RestartCheckFlag停止出现问题：" + err.Error())
+	}
 }
