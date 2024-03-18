@@ -21,36 +21,68 @@ var tokenWhiteListRegex = make([]*regexp.Regexp, 0)
 
 func Init() {
 	clog.Info("初始化路由白名单")
-	AppendList(InitSystemList())
-	TimedExecution()
+	defaultWhiteList := make([]Url, 0)
+	if config.Sysconfig.Detection.Token {
+		list := tokenWhiteListInit()
+		if len(list) > 0 {
+			defaultWhiteList = append(defaultWhiteList, list...)
+		}
+	}
+	if config.Sysconfig.Detection.Authentication {
+		list := authWhiteListInit()
+		if len(list) > 0 {
+			defaultWhiteList = append(defaultWhiteList, list...)
+		}
+	}
+	if len(defaultWhiteList) > 0 {
+		AppendList(defaultWhiteList)
+		TimedExecution()
+	} else {
+		clog.Info("没有检测要求,无需初始化")
+	}
 	clog.Info("初始化完成")
 }
 
 func InitSystemList() []Url {
 	defaultWhiteList := make([]Url, 0)
-	defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: "/consul/ser/health", CheckType: "T"})
-
 	if config.Sysconfig.Detection.Token {
-		clog.Info("获取token白名单....")
-		var tokenWhiteList []string
-		databases.GetDbByName("platform_management").Table("permissions_menu").
-			Where("is_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Select("req_url").Find(&tokenWhiteList)
-		for _, url := range tokenWhiteList {
-			defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: "T"})
+		list := tokenWhiteListInit()
+		if len(list) > 0 {
+			defaultWhiteList = append(defaultWhiteList, list...)
 		}
 	}
-
 	if config.Sysconfig.Detection.Authentication {
-		clog.Info("获取权限白名单....")
-		var authWhiteList []string
-		databases.GetDbByName("platform_management").Table("permissions_menu").
-			Where("is_enable_auth = ?", 2).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4).
-			Select("req_url").Find(&authWhiteList)
-		for _, url := range authWhiteList {
-			defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: "A"})
+		list := authWhiteListInit()
+		if len(list) > 0 {
+			defaultWhiteList = append(defaultWhiteList, list...)
 		}
 	}
+	return defaultWhiteList
+}
 
+func tokenWhiteListInit() []Url {
+	defaultWhiteList := make([]Url, 0)
+	defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: "/consul/ser/health", CheckType: "T"})
+	clog.Info("获取token白名单....")
+	var tokenWhiteList []string
+	databases.GetDbByName("platform_management").Table("permissions_menu").
+		Where("is_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Select("req_url").Find(&tokenWhiteList)
+	for _, url := range tokenWhiteList {
+		defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: "T"})
+	}
+	return defaultWhiteList
+}
+
+func authWhiteListInit() []Url {
+	defaultWhiteList := make([]Url, 0)
+	clog.Info("获取权限白名单....")
+	var authWhiteList []string
+	databases.GetDbByName("platform_management").Table("permissions_menu").
+		Where("is_enable_auth = ?", 2).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4).
+		Select("req_url").Find(&authWhiteList)
+	for _, url := range authWhiteList {
+		defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: "A"})
+	}
 	return defaultWhiteList
 }
 
@@ -67,21 +99,23 @@ func DelayRefreshList() {
 	authWhiteListRegex = make([]*regexp.Regexp, 0)
 	tokenWhiteListRegex = make([]*regexp.Regexp, 0)
 	items := InitSystemList()
-	var reg *regexp.Regexp
-	var err error
-	for _, item := range items {
-		clog.Infof("新增的白名单：", item)
-		reg, err = regexp.Compile(item.ReqUrl)
-		if err == nil {
-			if item.CheckType == "T" {
-				tokenWhiteListRegex = append(tokenWhiteListRegex, reg)
-			} else if item.CheckType == "A" {
-				authWhiteListRegex = append(authWhiteListRegex, reg)
+	if len(items) > 0 {
+		var reg *regexp.Regexp
+		var err error
+		for _, item := range items {
+			clog.Infof("新增的白名单：", item)
+			reg, err = regexp.Compile(item.ReqUrl)
+			if err == nil {
+				if item.CheckType == "T" {
+					tokenWhiteListRegex = append(tokenWhiteListRegex, reg)
+				} else if item.CheckType == "A" {
+					authWhiteListRegex = append(authWhiteListRegex, reg)
+				} else {
+					log.Error().Msg("接口检查类型不符合规范，仅支持T（免token）/A（免鉴权）")
+				}
 			} else {
-				log.Error().Msg("接口检查类型不符合规范，仅支持T（免token）/A（免鉴权）")
+				log.Error().Msg("invalid regex in white list: " + item.ReqUrl)
 			}
-		} else {
-			log.Error().Msg("invalid regex in white list: " + item.ReqUrl)
 		}
 	}
 	clog.Info("白名单刷新完成")
