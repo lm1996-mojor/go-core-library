@@ -145,6 +145,7 @@ func LocalCheckServiceHealth() {
 	}
 	if !CheckFlag {
 		failCheckCount++
+		return
 	}
 	failCheckCount = 0
 	log.Info("检查完成...")
