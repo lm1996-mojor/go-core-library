@@ -22,6 +22,7 @@ var tokenWhiteListRegex = make([]*regexp.Regexp, 0)
 func Init() {
 	clog.Info("初始化路由白名单")
 	defaultWhiteList := make([]Url, 0)
+	defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: "/consul/ser/health", CheckType: "T"})
 	if config.Sysconfig.Detection.Token {
 		list := tokenWhiteListInit()
 		if len(list) > 0 {
@@ -63,7 +64,7 @@ func InitSystemList() []Url {
 
 func tokenWhiteListInit() []Url {
 	defaultWhiteList := make([]Url, 0)
-	defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: "/consul/ser/health", CheckType: "T"})
+
 	clog.Info("获取token白名单....")
 	var tokenWhiteList []string
 	databases.GetDbByName("platform_management").Table("permissions_menu").
