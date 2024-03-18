@@ -23,21 +23,12 @@ func Init() {
 	clog.Info("初始化路由白名单")
 	defaultWhiteList := make([]Url, 0)
 	defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: "/consul/ser/health", CheckType: "T"})
-	if config.Sysconfig.Detection.Token {
-		list := tokenWhiteListInit()
-		if len(list) > 0 {
-			defaultWhiteList = append(defaultWhiteList, list...)
-		}
-	}
-	if config.Sysconfig.Detection.Authentication {
-		list := authWhiteListInit()
-		if len(list) > 0 {
-			defaultWhiteList = append(defaultWhiteList, list...)
-		}
+	list := InitSystemList()
+	if len(list) > 0 {
+		defaultWhiteList = append(defaultWhiteList, list...)
 	}
 	if len(defaultWhiteList) > 0 {
 		AppendList(defaultWhiteList)
-
 	} else {
 		clog.Info("没有检测要求,无需初始化")
 	}
@@ -47,6 +38,7 @@ func Init() {
 
 func InitSystemList() []Url {
 	defaultWhiteList := make([]Url, 0)
+	defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: "/consul/ser/health", CheckType: "T"})
 	if config.Sysconfig.Detection.Token {
 		list := tokenWhiteListInit()
 		if len(list) > 0 {
