@@ -50,7 +50,7 @@ type sysconfig struct {
 		ClientEnable          bool       // 租户数据源配置 默认为关闭状态
 		MasterDbName          string     // 主数据库名称
 		PDns                  string     // 平台数据库连接地址
-		EnableDbDynamicManage bool       // 开始数据源动态管理(默认为关闭状态)
+		EnableDbDynamicManage bool       // 开启数据源动态管理(默认为关闭状态)
 		DbInfoList            []struct { // 多个自定义数据库源
 			Host   string // 数据库访问地址
 			Port   string // 数据库访问端口
