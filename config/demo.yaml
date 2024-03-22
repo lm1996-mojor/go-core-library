@@ -26,6 +26,7 @@ databases:
 consul:
   addr: "192.168.0.103"
   port: 8500
+  enableServRegister: true
   enableObtainService: true
   check:
     checkTimeout: "10s"
