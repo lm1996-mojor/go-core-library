@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cast"
 )
 
+// AddTask 往库中新增任务
 func AddTask(taskStoreKey, taskDesc, spec string, cmd func(), opts ...cron.Option) error {
 	task := InitTask(opts...)
 	taskId, err := task.TaskBody.AddFunc(spec, cmd)
@@ -24,25 +25,51 @@ func AddTask(taskStoreKey, taskDesc, spec string, cmd func(), opts ...cron.Optio
 	return nil
 }
 
+// InitTask 初始化任务对象
 func InitTask(opts ...cron.Option) Task {
 	var task Task
-	if len(opts) > 0 {
-		task.TaskBody = cron.New(opts...)
-	} else {
-		task.TaskBody = cron.New()
-	}
+	task.TaskBody = cron.New(opts...)
 	return task
 }
 
+// BatchedRunTasker 批量运行库中的所有任务
 func BatchedRunTasker() {
 	for _, key := range taskKeys {
 		value, _ := TaskMap.Load(key)
 		task := value.(Task)
+		if task.TaskStatus {
+			continue
+		}
 		task.TaskStatus = true
 		go task.TaskBody.Run()
 	}
 }
 
+// BatchedRunSpecifiedTask 批量运行指定任务
+func BatchedRunSpecifiedTask(keys []string) {
+	for _, key := range keys {
+		value, _ := TaskMap.Load(key)
+		task := value.(Task)
+		if task.TaskStatus {
+			continue
+		}
+		task.TaskStatus = true
+		go task.TaskBody.Run()
+	}
+}
+
+// RunTask 启动单个指定任务
+func RunTask(key string) {
+	value, _ := TaskMap.Load(key)
+	task := value.(Task)
+	if task.TaskStatus {
+		return
+	}
+	task.TaskStatus = true
+	go task.TaskBody.Run()
+}
+
+// StopTask 停止单个指定任务
 func StopTask(key string) {
 	v, ok := TaskMap.Load(key)
 	if ok {
@@ -59,12 +86,14 @@ func StopTask(key string) {
 	log.Warn("没有找到对应的定时任务，停止任务失败key:" + key)
 }
 
+// BatchedStopTask 批量停止指定任务
 func BatchedStopTask(keys []string) {
 	for _, key := range keys {
 		StopTask(key)
 	}
 }
 
+// RegexpStopTask 正则匹配停止任务
 func RegexpStopTask(r *regexp.Regexp) {
 	for _, key := range taskKeys {
 		result := r.MatchString(key)
@@ -74,9 +103,16 @@ func RegexpStopTask(r *regexp.Regexp) {
 	}
 }
 
+// StopAndRemoveTask 停止并删除单个任务
 func StopAndRemoveTask(key string) error {
 	StopTask(key)
 	return RemoveTask(key)
+}
+
+// BatchedStopAndRemoveTask 批量停止并删除指定任务
+func BatchedStopAndRemoveTask(keys []string) error {
+	BatchedStopTask(keys)
+	return BatchRemoveTask(keys)
 }
 
 func RemoveTask(key string) error {
@@ -95,6 +131,7 @@ func RemoveTask(key string) error {
 	return nil
 }
 
+// BatchRemoveTask 批量删除指定任务
 func BatchRemoveTask(keys []string) error {
 	errMsg := "这些任务$正在执行中，请先停止任务。再进行移除"
 	replErrStr := ""
@@ -122,6 +159,7 @@ func BatchRemoveTask(keys []string) error {
 	return nil
 }
 
+// RegexpRemoveTask 正泽匹配删除任务
 func RegexpRemoveTask(r *regexp.Regexp) error {
 	for _, key := range taskKeys {
 		result := r.MatchString(key)
@@ -130,6 +168,24 @@ func RegexpRemoveTask(r *regexp.Regexp) error {
 				return err
 			}
 		}
+	}
+	return nil
+}
+
+// RenewTaskNextTime 更新指定任务的下次执行时间
+func RenewTaskNextTime(key string, nextSpec string) error {
+	value, _ := TaskMap.Load(key)
+	task := value.(Task)
+	job := task.TaskJob
+	opts := task.TaskOpt
+	desc := task.TaskDesc
+	err := StopAndRemoveTask(key)
+	if err != nil {
+		return err
+	}
+	err = AddTask(key, desc, nextSpec, job, opts...)
+	if err != nil {
+		return err
 	}
 	return nil
 }

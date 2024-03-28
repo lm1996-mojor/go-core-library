@@ -82,7 +82,7 @@ func authWhiteListInit() []Url {
 
 func timedExecution() {
 	spec := "@every 11s"
-	err := tasker_factory.AddTask("DelayRefreshList", "发现服务定时任务", spec, DelayRefreshList)
+	err := tasker_factory.AddTask("DelayRefreshList", "白名单刷新定时任务", spec, DelayRefreshList)
 	if err != nil {
 		panic("添加延迟刷新白名单列表定时任务添加失败" + err.Error())
 	}
