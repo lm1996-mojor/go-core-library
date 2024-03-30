@@ -69,7 +69,7 @@ func TimedExecution() {
 
 func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
 	log.Info("获取指定服务列表...")
-	ServiceLib = make([]ServiceLibrary, 0)
+
 	serviceMap, err := FindServiceList("")
 	if err != nil {
 		log.Error("Failed to get model list：" + err.Error())
@@ -90,6 +90,7 @@ func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
 	if len(localConfig.Sysconfig.Consul.Service.DesignatedServices) <= 0 {
 		ServiceLib = serviceList
 	} else {
+		services := make([]ServiceLibrary, 0)
 		designatedServiceMap := make(map[string]string)
 		for _, designatedService := range localConfig.Sysconfig.Consul.Service.DesignatedServices {
 			designatedServiceMap[designatedService.ServiceName] = designatedService.ServiceName
@@ -97,9 +98,11 @@ func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
 		for _, list := range serviceList {
 			_, ok := designatedServiceMap[list.ServiceName]
 			if ok {
-				ServiceLib = append(ServiceLib, list)
+				services = append(services, list)
 			}
 		}
+		ServiceLib = make([]ServiceLibrary, 0)
+		ServiceLib = services
 	}
 	log.Info("获取指定服务列表完成")
 }
