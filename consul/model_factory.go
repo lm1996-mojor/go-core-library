@@ -101,7 +101,6 @@ func ObtainSpecifyingConfigServicesFromTheRegistrationCenter() {
 				services = append(services, list)
 			}
 		}
-		ServiceLib = make([]ServiceLibrary, 0)
 		ServiceLib = services
 	}
 	log.Info("获取指定服务列表完成")
