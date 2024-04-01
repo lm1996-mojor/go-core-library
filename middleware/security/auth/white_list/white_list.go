@@ -138,9 +138,14 @@ func InList(path string, checkType int) bool {
 
 func match(reqPath string, srcReqPathSlice map[string]string, msgStr string) bool {
 	for key, _ := range srcReqPathSlice {
-		if strings.Contains(key, reqPath) {
+		if key == reqPath {
 			clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
 			return true
+		} else {
+			if strings.Contains(key, reqPath) {
+				clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
+				return true
+			}
 		}
 	}
 	clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：失败")
