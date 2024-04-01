@@ -137,12 +137,25 @@ func InList(path string, checkType int) bool {
 }
 
 func match(reqPath string, srcReqPathSlice map[string]string, msgStr string) bool {
+	// user/{id}
 	for key, _ := range srcReqPathSlice {
-		if key == reqPath {
-			clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
-			return true
+		if strings.Contains(key, reqPath) {
+			if strings.Contains(key, "{") {
+				if strings.Count(key[strings.Index(key, "{")-1:], "/") == strings.Count(reqPath[strings.Index(key, "{")-1:], "/") {
+					if key[0:strings.Index(key, "{")] == reqPath[0:len(key[0:strings.Index(key, "{")])+1] {
+						clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
+						return true
+					}
+				} else if key == reqPath {
+					clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
+					return true
+				}
+			} else if key == reqPath {
+				clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
+				return true
+			}
 		} else {
-			if strings.Contains(key, reqPath) {
+			if key == reqPath {
 				clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
 				return true
 			}
