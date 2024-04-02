@@ -37,45 +37,45 @@ func Init() {
 
 func InitSystemList() []Url {
 	defaultWhiteList := make([]Url, 0)
-	if config.Sysconfig.Detection.Token {
-		list := tokenWhiteListInit()
-		if len(list) > 0 {
-			defaultWhiteList = append(defaultWhiteList, list...)
-		}
+	list := tokenWhiteListInit()
+	if len(list) > 0 {
+		defaultWhiteList = append(defaultWhiteList, list...)
 	}
-	if config.Sysconfig.Detection.Authentication {
-		list := authWhiteListInit()
-		if len(list) > 0 {
-			defaultWhiteList = append(defaultWhiteList, list...)
-		}
+	list = authWhiteListInit()
+	if len(list) > 0 {
+		defaultWhiteList = append(defaultWhiteList, list...)
 	}
 	return defaultWhiteList
 }
 
 func tokenWhiteListInit() []Url {
-	clog.Info("获取token白名单....")
 	defaultWhiteList := make([]Url, 0)
-	var tokenWhiteList []string
-	databases.GetDbByName("platform_management").Table("permissions_menu").
-		Where("is_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1).
-		Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%").
-		Select("req_url").Find(&tokenWhiteList)
-	for _, url := range tokenWhiteList {
-		defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: 1})
+	if config.Sysconfig.Detection.Token {
+		clog.Info("获取token白名单....")
+		var tokenWhiteList []string
+		databases.GetDbByName("platform_management").Table("permissions_menu").
+			Where("is_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1).
+			Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%").
+			Select("req_url").Find(&tokenWhiteList)
+		for _, url := range tokenWhiteList {
+			defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: 1})
+		}
 	}
 	return defaultWhiteList
 }
 
 func authWhiteListInit() []Url {
-	clog.Info("获取权限白名单....")
 	defaultWhiteList := make([]Url, 0)
-	var authWhiteList []string
-	databases.GetDbByName("platform_management").Table("permissions_menu").
-		Where("is_enable_auth = ?", 2).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4).
-		Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%").
-		Select("req_url").Find(&authWhiteList)
-	for _, url := range authWhiteList {
-		defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: 2})
+	if config.Sysconfig.Detection.Authentication {
+		clog.Info("获取权限白名单....")
+		var authWhiteList []string
+		databases.GetDbByName("platform_management").Table("permissions_menu").
+			Where("is_enable_auth = ?", 2).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4).
+			Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%").
+			Select("req_url").Find(&authWhiteList)
+		for _, url := range authWhiteList {
+			defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: 2})
+		}
 	}
 	return defaultWhiteList
 }
@@ -142,7 +142,7 @@ func match(reqPath string, srcReqPathSlice map[string]string, msgStr string) boo
 		if strings.Contains(key, reqPath) {
 			if strings.Contains(key, "{") {
 				if strings.Count(key[strings.Index(key, "{")-1:], "/") == strings.Count(reqPath[strings.Index(key, "{")-1:], "/") {
-					if key[0:strings.Index(key, "{")] == reqPath[0:len(key[0:strings.Index(key, "{")])+1] {
+					if key[0:strings.Index(key, "{")] == reqPath[0:len(key[0:strings.Index(key, "{")])] {
 						clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
 						return true
 					}
