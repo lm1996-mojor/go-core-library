@@ -77,6 +77,9 @@ type sysconfig struct {
 		AuthService             string // 权限检查使用的服务（名称）
 		AuthCheckServiceApiUrl  string // 权限检查使用的服务地址
 	}
+	Log struct {
+		Level string
+	}
 }
 
 // 数据库内部结构体
