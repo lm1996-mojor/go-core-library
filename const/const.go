@@ -18,4 +18,11 @@ const (
 	TokenOriginal                            = "_token_original"         // token原文
 	WebSocketTokenStoreHttpRequestHeaderName = "Sec-Websocket-Protocol"  // webSocket存储token请求头名称
 	OriginalReqParam                         = "original_req_param"      // 原请求数据参数
+	ClientDbRedisPSubscribe                  = "client_db_"
+)
+
+const (
+	DbOperateAdd    = "add"
+	DbOperateUpdate = "update"
+	DbOperateDel    = "del"
 )

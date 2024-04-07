@@ -42,6 +42,10 @@ func SetDbMap(key string, db *gorm.DB) {
 	dbMap[key] = db
 }
 
+func DelDb(key string) {
+	delete(dbMap, key)
+}
+
 // GormLogger 自定义Gorm日志结构体
 type GormLogger struct{}
 

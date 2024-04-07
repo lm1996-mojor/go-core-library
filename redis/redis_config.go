@@ -45,7 +45,10 @@ func Init(app *iris.Application) {
 			ConnectionRedis([]string{config.Sysconfig.Redis.ConnInfo}, context.Background())
 		}
 		if config.Sysconfig.DataBases.EnableDbDynamicManage {
-			go GetSubscriptionMessagesFromCache()
+			go renewDb()
+		}
+		if config.Sysconfig.Consul.EnableObtainService {
+
 		}
 	} else {
 		if config.Sysconfig.DataBases.EnableDbDynamicManage {
