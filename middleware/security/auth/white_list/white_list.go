@@ -53,10 +53,12 @@ func tokenWhiteListInit() []Url {
 	if config.Sysconfig.Detection.Token {
 		clog.Info("获取token白名单....")
 		var tokenWhiteList []string
-		databases.GetDbByName("platform_management").Table("permissions_menu").
-			Where("is_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1).
-			Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%").
-			Select("req_url").Find(&tokenWhiteList)
+		db := databases.GetDbByName("platform_management").Table("permissions_menu").
+			Where("is_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1)
+		if config.Sysconfig.App.GlobalReqPathPrefix != "" || len(config.Sysconfig.App.GlobalReqPathPrefix) > 0 || config.Sysconfig.App.GlobalReqPathPrefix != "null" {
+			db = db.Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%")
+		}
+		db.Select("req_url").Find(&tokenWhiteList)
 		for _, url := range tokenWhiteList {
 			defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: 1})
 		}
@@ -69,10 +71,12 @@ func authWhiteListInit() []Url {
 	if config.Sysconfig.Detection.Authentication {
 		clog.Info("获取权限白名单....")
 		var authWhiteList []string
-		databases.GetDbByName("platform_management").Table("permissions_menu").
-			Where("is_enable_auth = ?", 2).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4).
-			Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%").
-			Select("req_url").Find(&authWhiteList)
+		db := databases.GetDbByName("platform_management").Table("permissions_menu").
+			Where("is_auth_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4)
+		if config.Sysconfig.App.GlobalReqPathPrefix != "" || len(config.Sysconfig.App.GlobalReqPathPrefix) > 0 || config.Sysconfig.App.GlobalReqPathPrefix != "null" {
+			db = db.Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%")
+		}
+		db.Select("req_url").Find(&authWhiteList)
 		for _, url := range authWhiteList {
 			defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: 2})
 		}
