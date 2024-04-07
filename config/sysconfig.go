@@ -3,7 +3,7 @@ package config
 import (
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/global"
-	"github.com/lm1996-mojor/go-core-library/log"
+	"github.com/rs/zerolog/log"
 
 	"github.com/kataras/iris/v12"
 	"github.com/spf13/viper"
@@ -113,7 +113,7 @@ func Init(app *iris.Application) {
 	ReadConfigFile("./"+_const.CONFIG, "yaml", &Sysconfig)
 	// 配置有效性检验
 	validation()
-	log.Infof("初始化配置: \n %v", Sysconfig)
+	log.Info().Msgf("初始化配置: \n %v", Sysconfig)
 }
 
 func ReadConfigFile(filePath string, fileType string, rawObj interface{}) interface{} {
