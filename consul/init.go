@@ -14,8 +14,9 @@ import (
 )
 
 func Init(app *iris.Application) {
-	if libConfig.Sysconfig.Consul.EnableServRegister {
-		if libConfig.Sysconfig.Consul.Addr != "" && libConfig.Sysconfig.Consul.Addr != "null" && len(libConfig.Sysconfig.Consul.Addr) > 0 {
+	if libConfig.Sysconfig.Consul.Addr != "" && libConfig.Sysconfig.Consul.Addr != "null" && len(libConfig.Sysconfig.Consul.Addr) > 0 {
+		if libConfig.Sysconfig.Consul.EnableServRegister {
+
 			host := ""
 			ipAddrList := ""
 			if libConfig.Sysconfig.SystemEnv.Env != "prod" {
@@ -44,12 +45,13 @@ func Init(app *iris.Application) {
 			store.Set(_const.ConsulEndId, consulServiceId)
 			mvc.New(app.Party("/consul")).Handle(NewController())
 			log.Info("初始化服务治理-服务健康检查接口")
-		} else {
-			log.Info("无服务治理要求...")
+
 		}
+		ObtainSpecifyingConfigServicesFromTheRegistrationCenter()
+		TimedExecution()
+	} else {
+		log.Info("无服务治理要求...")
 	}
-	ObtainSpecifyingConfigServicesFromTheRegistrationCenter()
-	TimedExecution()
 }
 
 const runLevel = -2
