@@ -16,7 +16,6 @@ import (
 func Init(app *iris.Application) {
 	if libConfig.Sysconfig.Consul.Addr != "" && libConfig.Sysconfig.Consul.Addr != "null" && len(libConfig.Sysconfig.Consul.Addr) > 0 {
 		if libConfig.Sysconfig.Consul.EnableServRegister {
-
 			host := ""
 			ipAddrList := ""
 			if libConfig.Sysconfig.SystemEnv.Env != "prod" {
