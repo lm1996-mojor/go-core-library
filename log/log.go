@@ -51,21 +51,21 @@ func Infof(format string, v ...interface{}) {
 // Warn log in WARN level
 func Warn(msg string) {
 	file, line, funcName := logMasterSource()
-	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],the function name[" + funcName + "]"
+	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],\n the function name[" + funcName + "]"
 	log.Warn().Msg(msg)
 }
 
 func WarnF(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
 	file, line, funcName := logMasterSource()
-	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],the function name[" + funcName + "]"
+	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],\n the function name[" + funcName + "]"
 	log.Warn().Msgf(format, v)
 }
 
 // Error log in Error level
 func Error(msg string) {
 	file, line, funcName := logMasterSource()
-	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],the function name[" + funcName + "]"
+	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],\n the function name[" + funcName + "]"
 	log.Error().Msg(msg)
 }
 
@@ -73,7 +73,7 @@ func Error(msg string) {
 func Errorf(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
 	file, line, funcName := logMasterSource()
-	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],the function name[" + funcName + "]"
+	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],\n the function name[" + funcName + "]"
 	log.Error().Msg(msg)
 }
 
@@ -85,14 +85,14 @@ func Fatal(msg string) {
 // Panic log in PANIC level
 func Panic(msg string) {
 	file, line, funcName := logMasterSource()
-	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],the function name[" + funcName + "]"
+	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],\n the function name[" + funcName + "]"
 	log.Panic().Msg(msg)
 }
 
 // Err log an error and a message
 func Err(err error, msg string) {
 	file, line, funcName := logMasterSource()
-	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],the function name[" + funcName + "]"
+	msg += ", On line [" + fmt.Sprint(line) + "] of the [" + file + "],\n the function name[" + funcName + "]"
 	log.Err(err).Msg(msg)
 }
 

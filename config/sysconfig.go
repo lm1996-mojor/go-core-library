@@ -78,7 +78,7 @@ type sysconfig struct {
 		AuthCheckServiceApiUrl  string // 权限检查使用的服务地址
 	}
 	Log struct {
-		Level string
+		Level string // 日志级别
 	}
 }
 

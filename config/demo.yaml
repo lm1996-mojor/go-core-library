@@ -53,3 +53,6 @@ detection:
 
 systemEnv:
   env: "dev"
+
+log:
+  logLevel: "info"
