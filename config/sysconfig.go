@@ -52,11 +52,13 @@ type sysconfig struct {
 		PDns                  string     // 平台数据库连接地址
 		EnableDbDynamicManage bool       // 开启数据源动态管理(默认为关闭状态)
 		DbInfoList            []struct { // 多个自定义数据库源
-			Host   string // 数据库访问地址
-			Port   string // 数据库访问端口
-			DbName string // 项目连接的数据库
-			DbUser string // 数据库用户
-			DbPass string // 数据密码
+			Host        string // 数据库访问地址
+			Port        string // 数据库访问端口
+			DbName      string // 项目连接的数据库
+			DbUser      string // 数据库用户
+			DbPass      string // 数据密码
+			DbType      string // 数据库类型
+			DbConnProto string // 数据库连接协议
 		}
 	}
 

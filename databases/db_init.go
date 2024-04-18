@@ -13,37 +13,59 @@ import (
 	clog "github.com/lm1996-mojor/go-core-library/log"
 	localCipher "github.com/lm1996-mojor/go-core-library/utils/cipher"
 	"github.com/rs/zerolog/log"
+	"gorm.io/driver/clickhouse"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 )
 
-var mutex sync.Mutex                  // 锁对象
-var dbMap = make(map[string]*gorm.DB) // 租户数据库map
+var mutex sync.Mutex                       // 锁对象
+var mysqlDbMap = make(map[string]*gorm.DB) // 租户数据库map
+var clickhouseDbMap = make(map[string]*gorm.DB)
 
 // ClientDb  租户数据库信息
 type clientDb struct {
-	ClientId int64  `json:"-,omitempty"`       // 租户id
-	DbHost   string `json:"dbHost,omitempty"`  // 租户专属数据库连接地址
-	DbPort   string `json:"dbPort,omitempty"`  // 租户专属数据库连接端口
-	DbName   string `json:"dbName,omitempty"`  // 租户专属数据库名称
-	DbUser   string `json:"dbUser,omitempty"`  // 租户专属数据库账户
-	DbPass   string `json:"dbPass,omitempty"`  // 租户专属数据库密码
-	DbType   string `json:"dbType,omitempty"`  // 租户专属数据库类型（mysql/Oracle/PostgreSQL/DB2/SQL Server、MariaDB）
-	EnvType  int8   `json:"envType,omitempty"` // 数据库环境类型（1 线上 2 开发  3 测试 4 体验）
+	ClientId    int64  `json:"-,omitempty"`           // 租户id
+	DbHost      string `json:"dbHost,omitempty"`      // 租户专属数据库连接地址
+	DbPort      string `json:"dbPort,omitempty"`      // 租户专属数据库连接端口
+	DbName      string `json:"dbName,omitempty"`      // 租户专属数据库名称
+	DbUser      string `json:"dbUser,omitempty"`      // 租户专属数据库账户
+	DbPass      string `json:"dbPass,omitempty"`      // 租户专属数据库密码
+	DbType      string `json:"dbType,omitempty"`      // 租户专属数据库类型（mysql/Oracle/PostgreSQL/DB2/SQL Server、MariaDB）
+	DbConnProto string `json:"dbConnProto,omitempty"` // 租户专属数据库连接协议（tcp/http/https/udp等）
+	EnvType     int8   `json:"envType,omitempty"`     // 数据库环境类型（1 线上 2 开发  3 测试 4 体验）
 }
 
 func GetDbMap() map[string]*gorm.DB {
-	return dbMap
+	return mysqlDbMap
+}
+func GetDbMapByType(dbType string) map[string]*gorm.DB {
+	switch dbType {
+	case "mysql":
+		return mysqlDbMap
+	case "clickhouse":
+		return clickhouseDbMap
+	}
+	return nil
 }
 
-func SetDbMap(key string, db *gorm.DB) {
-	dbMap[key] = db
+func SetDbMap(key string, dbType string, db *gorm.DB) {
+	switch dbType {
+	case "mysql":
+		mysqlDbMap[key] = db
+	case "clickhouse":
+		clickhouseDbMap[key] = db
+	}
 }
 
-func DelDb(key string) {
-	delete(dbMap, key)
+func DelDb(key string, dbType string) {
+	switch dbType {
+	case "mysql":
+		delete(mysqlDbMap, key)
+	case "clickhouse":
+		delete(clickhouseDbMap, key)
+	}
 }
 
 // GormLogger 自定义Gorm日志结构体
@@ -93,19 +115,44 @@ func initCustomizedDB() {
 	dbInfoList := config.Sysconfig.DataBases.DbInfoList
 	for _, database := range dbInfoList {
 		//创建临时数据库连接变量
-		dsn := database.DbUser + ":" + database.DbPass + "@tcp(" + database.Host + ":" +
-			database.Port + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
-		//打开连接
-		clog.Info("自定义数据库连接：" + dsn)
-		db, err := ConnectDB(dsn)
-		if err != nil {
-			panic("自定义数据库连接错误: " + err.Error())
+		dsn := ""
+		switch database.DbType {
+		case "mysql":
+			dsn = database.DbUser + ":" + database.DbPass + "@tcp(" + database.Host + ":" +
+				database.Port + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
+			//打开连接
+			clog.Info("自定义数据库连接：" + dsn)
+			db, err := ConnectDB(dsn, database.DbType)
+			if err != nil {
+				panic("自定义数据库连接错误: " + err.Error())
+			}
+			//定制key,将打开的连接存入到map中
+			mutex.Lock()
+			mysqlDbMap[database.DbName] = db
+			mutex.Unlock()
+		case "clickhouse":
+			//"tcp://192.168.0.62:9000/tutorial?&username=default&password=&read_timeout=10s"
+			dsn = fmt.Sprintf("%s://%s:%s/%s?&username=%s&password=%s&read_timeout=10s",
+				database.DbConnProto,
+				database.Host,
+				database.Port,
+				database.DbName,
+				database.DbUser,
+				database.DbPass,
+			)
+			//打开连接
+			clog.Info("自定义数据库连接：" + dsn)
+			db, err := ConnectDB(dsn, database.DbType)
+			if err != nil {
+				panic("自定义数据库连接错误: " + err.Error())
+			}
+			//定制key,将打开的连接存入到map中
+			mutex.Lock()
+			clickhouseDbMap[database.DbName] = db
+			mutex.Unlock()
+		default:
+			panic("无法识别的数据库类型:[" + database.DbType + "]")
 		}
-		//定制key,将打开的连接存入到map中
-		databaseName := database.DbName
-		mutex.Lock()
-		dbMap[databaseName] = db
-		mutex.Unlock()
 	}
 }
 
@@ -126,7 +173,7 @@ func initClientDB() {
 			}
 			platformDbConnectAddress = string(pDns)
 		} else {
-			panic("检测到目前配置为生产线环境，请配置平台数据库连接地址")
+			panic("检测到目前配置为生产线环境，请配置平台数据库连接地址(base64加密后的)")
 		}
 	}
 	platformDb, err1 := gorm.Open(mysql.Open(platformDbConnectAddress), &gorm.Config{
@@ -145,36 +192,74 @@ func initClientDB() {
 	//获取自定义的数据库信息：从配置文件中获取，即config/Sysconfig结构体中获取
 	for _, database := range dbInfoList {
 		//创建临时数据库连接变量
-		dsn := database.DbUser + ":" + database.DbPass + "@tcp(" + database.DbHost + ":" +
-			database.DbPort + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
-		//打开连接
-		clog.Info("租户数据库连接：" + dsn)
-		db, err := ConnectDB(dsn)
-		if err != nil {
-			panic("租户数据库连接错误: " + err.Error())
+		dsn := ""
+		switch database.DbType {
+		case "mysql":
+			dsn = database.DbUser + ":" + database.DbPass + "@tcp(" + database.DbHost + ":" +
+				database.DbPort + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
+			//打开连接
+			clog.Info("租户数据库连接：" + dsn)
+			db, err := ConnectDB(dsn, database.DbType)
+			if err != nil {
+				panic("租户数据库连接错误: " + err.Error())
+			}
+			//定制key,将打开的连接存入到map中
+			mutex.Lock()
+			mysqlDbMap[fmt.Sprintf("%d", database.ClientId)] = db
+			mutex.Unlock()
+		case "clickhouse":
+			//"tcp://192.168.0.62:9000/tutorial?&username=default&password=&read_timeout=10s"
+			dsn = fmt.Sprintf("%s://%s:%s/%s?&username=%s&password=%s&read_timeout=10s",
+				database.DbConnProto,
+				database.DbHost,
+				database.DbPort,
+				database.DbName,
+				database.DbUser,
+				database.DbPass,
+			)
+			//打开连接
+			clog.Info("租户数据库连接：" + dsn)
+			db, err := ConnectDB(dsn, database.DbType)
+			if err != nil {
+				panic("租户数据库连接错误: " + err.Error())
+			}
+			//定制key,将打开的连接存入到map中
+			mutex.Lock()
+			clickhouseDbMap[fmt.Sprintf("%d", database.ClientId)] = db
+			mutex.Unlock()
+		default:
+			panic("无法识别的数据库类型:[" + database.DbType + "]")
 		}
-		//定制key,将打开的连接存入到map中
-		mutex.Lock()
-		dbMap[fmt.Sprintf("%d", database.ClientId)] = db
-		mutex.Unlock()
 	}
 }
 
 // 打开数据库连接
-func ConnectDB(dsn string) (db *gorm.DB, err error) {
+func ConnectDB(dsn string, dbType string) (db *gorm.DB, err error) {
 	//通过传输进来的dsn信息，使用mysql.open方法打开数据的连接，并配置gorm.config结构体相关的信息
 	// NamingStrategy ：取消默认表名
-
-	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		NamingStrategy: schema.NamingStrategy{SingularTable: true}, // love表将是love，不再是loves，即可成功取消表明被加s
-		Logger:         newLogger,                                  //指定自定义的gorm日志结构体
-	})
+	switch dbType {
+	case "mysql":
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+			NamingStrategy: schema.NamingStrategy{SingularTable: true}, // love表将是love，不再是loves，即可成功取消表明被加s
+			Logger:         newLogger,                                  //指定自定义的gorm日志结构体
+		})
+	case "clickhouse":
+		db, err = gorm.Open(clickhouse.New(clickhouse.Config{
+			DSN:                       dsn,
+			DisableDatetimePrecision:  true,  // disable datetime64 precision, not supported before clickhouse 20.4
+			DontSupportRenameColumn:   true,  // rename column not supported before clickhouse 20.4
+			SkipInitializeWithVersion: false, // smart configure based on used version
+		}), &gorm.Config{
+			NamingStrategy: schema.NamingStrategy{SingularTable: true},
+			Logger:         newLogger,
+		})
+	}
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	sqlDB, err1 := db.DB() // 通过连接池创建出单例的数据库连接对象,并存入池中
 	if err1 != nil {
-		panic(err)
+		return nil, err1
 	}
 
 	//配置连接对象的连接信息

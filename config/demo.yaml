@@ -22,6 +22,7 @@ databases:
       dbName: "dbName2"
       dbUser: "dbUser2"
       dbPass: "dbPass2"
+      dbType: "mysql/clickhouse"
 
 consul:
   addr: "192.168.0.103"

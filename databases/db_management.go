@@ -13,21 +13,21 @@ import (
 )
 
 // GetDbByName 根据key获取数据库操作对象
-func GetDbByName(key string) (db *gorm.DB) {
+func GetDbByName(key string, dbType string) (db *gorm.DB) {
 	if key == "" {
-		key = config.Sysconfig.DataBases.MasterDbName
+		return mysqlDbMap[config.Sysconfig.DataBases.MasterDbName].WithContext(context.Background())
 	}
-	return dbMap[key].WithContext(context.Background())
+	return GetDbMapByType(dbType)[key].WithContext(context.Background())
 }
 
 // ---------- 自定义数据源处理代码块 ----------------
 
-func GetCustomDbTxByDbName(ctx iris.Context, name string) (tx *gorm.DB) {
+func GetCustomDbTxByDbName(ctx iris.Context, name string, dbType string) (tx *gorm.DB) {
 	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.CustomTx + name)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
-		tx = GetDbByName(name).Begin()
+		tx = GetDbByName(name, dbType).Begin()
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.CustomTx+name, tx)
 	}
 	return
@@ -40,12 +40,12 @@ func GetCustomDbTxByDbName(ctx iris.Context, name string) (tx *gorm.DB) {
 
 // ---------- 主数据源处理代码块 ----------------
 
-func GetMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
+func GetMasterDbTx(ctx iris.Context, dbType string) (tx *gorm.DB) {
 	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.MasterTx)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
-		tx = GetDbByName("").Begin()
+		tx = GetDbByName("", dbType).Begin()
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.MasterTx, tx)
 	}
 	return
@@ -57,12 +57,12 @@ func GetMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
 
 // ---------- 租户数据源处理代码块 ----------------
 
-func GetClientDbTX(ctx iris.Context, clientId string) (tx *gorm.DB) {
+func GetClientDbTX(ctx iris.Context, clientId string, dbType string) (tx *gorm.DB) {
 	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.ClientTx + clientId)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
-		tx = GetDbByName(clientId).Begin()
+		tx = GetDbByName(clientId, dbType).Begin()
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientTx+clientId, tx)
 	}
 	return
@@ -70,12 +70,12 @@ func GetClientDbTX(ctx iris.Context, clientId string) (tx *gorm.DB) {
 
 // ---------- 获取指定的数据源，且每个数据源占有独立的本地存储空间 ----------------
 
-func GetDbTxObjByDbName(ctx iris.Context, name string) (tx *gorm.DB) {
+func GetDbTxObjByDbName(ctx iris.Context, name string, dbType string) (tx *gorm.DB) {
 	value, ok := store.Get(http_session.GetCurrentHttpSessionUniqueKey(ctx) + _const.ClientTx + name)
 	if ok {
 		tx = value.(*gorm.DB)
 	} else {
-		tx = GetDbByName(name).Begin()
+		tx = GetDbByName(name, dbType).Begin()
 		store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientTx+name, tx)
 	}
 	return

@@ -14,13 +14,9 @@ import (
 	"github.com/spf13/cast"
 )
 
-const (
-	GET = "GET"
-)
-
 func GetParseToken(token string, url string) (respBody []byte, err error) {
 	client := &http.Client{Timeout: 60 * time.Second}
-	req, err1 := parseTokenUtil(GET, url, token)
+	req, err1 := parseTokenUtil("GET", url, token)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -153,7 +149,7 @@ func ParseResponseBody(respBody []byte) (map[string]interface{}, error) {
 	err := json.Unmarshal(respBody, &resultMap)
 	if err != nil {
 		clog.Errorf("解析json到结构体出错 ", err)
-		return nil, errors.New("proxy->解析json到结构体出错:109")
+		return nil, errors.New("解析json到结构体出错")
 	}
 	return resultMap, nil
 }
