@@ -14,6 +14,16 @@ func validation() {
 func dbValidation() {
 	log.Info().Msg("数据源配置检查...")
 	if len(Sysconfig.DataBases.DbInfoList) > 0 {
+		for _, dbinfo := range Sysconfig.DataBases.DbInfoList {
+			for _, dbInfo2 := range Sysconfig.DataBases.DbInfoList {
+				if dbinfo.DbName == dbInfo2.DbName && dbinfo.DbType == dbInfo2.DbType {
+					panic("自定义数据源列表中，不能存在两个相同的数据源(名称和类型相同):[" + dbinfo.DbName + "]")
+				}
+				if dbinfo.DbName == dbInfo2.DbName && dbinfo.DbType != dbInfo2.DbType {
+					log.Warn().Msg("请注意！有两个名称相同，类型不同的数据源。请注意使用:[" + dbinfo.DbName + "]")
+				}
+			}
+		}
 		if Sysconfig.DataBases.MasterDbName == "" || len(Sysconfig.DataBases.MasterDbName) <= 0 {
 			panic("Master 数据源不能为空，请检查yaml中的 masterDbName")
 		}
@@ -26,6 +36,8 @@ func dbValidation() {
 		if !flag {
 			panic("Master 数据源，在多数据源列表(DbInfoList)中不存在，请检查yaml中的 masterDbName")
 		}
+	} else {
+		log.Info().Msg("无数据源要求")
 	}
 	log.Info().Msg("数据源配置检查完成")
 }

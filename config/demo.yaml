@@ -17,12 +17,15 @@ databases:
       dbName: "dbName1"
       dbUser: "dbUser1"
       dbPass: "dbPass1"
+      dbType: "mysql/clickhouse"
+      dbConnProtoc: "tcp/http"
     - host: "host2"
       port: "port2"
       dbName: "dbName2"
       dbUser: "dbUser2"
       dbPass: "dbPass2"
       dbType: "mysql/clickhouse"
+      dbConnProtoc: "tcp/http"
 
 consul:
   addr: "192.168.0.103"

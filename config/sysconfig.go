@@ -58,7 +58,7 @@ type sysconfig struct {
 			DbUser      string // 数据库用户
 			DbPass      string // 数据密码
 			DbType      string // 数据库类型
-			DbConnProto string // 数据库连接协议
+			DbConnProto string // 数据库连接协议(tcp/http/udp等)
 		}
 	}
 

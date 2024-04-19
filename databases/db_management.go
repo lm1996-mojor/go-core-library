@@ -15,7 +15,7 @@ import (
 // GetDbByName 根据key获取数据库操作对象
 func GetDbByName(key string, dbType string) (db *gorm.DB) {
 	if key == "" {
-		return mysqlDbMap[config.Sysconfig.DataBases.MasterDbName].WithContext(context.Background())
+		key = config.Sysconfig.DataBases.MasterDbName
 	}
 	return GetDbMapByType(dbType)[key].WithContext(context.Background())
 }

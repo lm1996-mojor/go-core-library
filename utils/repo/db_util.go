@@ -20,22 +20,22 @@ import (
 
 // ObtainCustomDbByDbName 根据自定义的数据源名称获取自定义数据源对象
 func ObtainCustomDbByDbName(dbName string) (db *gorm.DB) {
-	return dbLib.GetDbByName(dbName)
+	return dbLib.GetDbByName(dbName, "mysql")
 }
 
 // ObtainCustomTxDbByDbName 根据自定义的数据源名称获取带事务的自定义数据源对象
 func ObtainCustomTxDbByDbName(ctx iris.Context, dbName string) (tx *gorm.DB) {
-	return dbLib.GetCustomDbTxByDbName(ctx, dbName)
+	return dbLib.GetCustomDbTxByDbName(ctx, dbName, "mysql")
 }
 
 // ObtainMasterDb 获取常规主数据源
 func ObtainMasterDb() (db *gorm.DB) {
-	return dbLib.GetDbByName("")
+	return dbLib.GetDbByName("", "mysql")
 }
 
 // ObtainMasterDbTx 获取带事务的数据源
 func ObtainMasterDbTx(ctx iris.Context) (tx *gorm.DB) {
-	return dbLib.GetMasterDbTx(ctx)
+	return dbLib.GetMasterDbTx(ctx, "mysql")
 }
 
 // ObtainClientDb 获取常规动态租户数据源
@@ -45,7 +45,7 @@ func ObtainClientDb(ctx iris.Context) (db *gorm.DB) {
 		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
 		panic("服务器错误")
 	}
-	return dbLib.GetDbByName(fmt.Sprintf("%d", clientId))
+	return dbLib.GetDbByName(fmt.Sprintf("%d", clientId), "mysql")
 }
 
 // ObtainClientDbTx 获取带事务的动态租户数据源
@@ -55,7 +55,7 @@ func ObtainClientDbTx(ctx iris.Context) (db *gorm.DB) {
 		log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
 		panic("服务器错误")
 	}
-	return dbLib.GetClientDbTX(ctx, fmt.Sprintf("%d", clientId))
+	return dbLib.GetClientDbTX(ctx, fmt.Sprintf("%d", clientId), "mysql")
 }
 
 // ObtainDb 获取数据源
@@ -67,9 +67,9 @@ func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
 	clientId, err := ObtainClientId(ctx)
 	if config.Sysconfig.App.Name == "platform_management" {
 		if txFlag {
-			return dbLib.GetCustomDbTxByDbName(ctx, "platform_management")
+			return dbLib.GetCustomDbTxByDbName(ctx, "platform_management", "mysql")
 		} else {
-			return dbLib.GetDbByName("platform_management")
+			return dbLib.GetDbByName("platform_management", "mysql")
 		}
 	}
 	if err != nil {
@@ -80,23 +80,23 @@ func ObtainDb(ctx iris.Context, txFlag bool) *gorm.DB {
 	if clientId <= 0 {
 		// 使用默认数据库（如果当前操作的是业务数据库，则都会报错）
 		if txFlag {
-			return dbLib.GetCustomDbTxByDbName(ctx, "platform_management")
+			return dbLib.GetCustomDbTxByDbName(ctx, "platform_management", "mysql")
 		} else {
-			return dbLib.GetDbByName("platform_management")
+			return dbLib.GetDbByName("platform_management", "mysql")
 		}
 	} else {
 		if config.Sysconfig.SystemEnv.Env == "prod" && config.Sysconfig.DataBases.ClientEnable {
 			clientIdStr := fmt.Sprintf("%d", clientId)
 			if txFlag {
-				return dbLib.GetClientDbTX(ctx, clientIdStr)
+				return dbLib.GetClientDbTX(ctx, clientIdStr, "mysql")
 			} else {
-				return dbLib.GetDbByName(clientIdStr)
+				return dbLib.GetDbByName(clientIdStr, "mysql")
 			}
 		} else {
 			if txFlag {
-				return dbLib.GetMasterDbTx(ctx)
+				return dbLib.GetMasterDbTx(ctx, "mysql")
 			} else {
-				return dbLib.GetDbByName("")
+				return dbLib.GetDbByName("", "mysql")
 			}
 		}
 	}
@@ -116,12 +116,31 @@ func ObtainClientId(ctx iris.Context) (clientId int64, err error) {
 	return cId, nil
 }
 
-// ObtainDbObjByDbName 根据名称获取独立存储空间的db对象
-func ObtainDbObjByDbName(dbName string) (db *gorm.DB) {
-	return dbLib.GetDbByName(dbName)
-}
-
-// ObtainDbTxObjByDbName 根据名称获取独立存储空间且带事务的db对象,该方法仅限用于一次请求需要操作多个数据源的场景
-func ObtainDbTxObjByDbName(ctx iris.Context, dbName string) (tx *gorm.DB) {
-	return dbLib.GetDbTxObjByDbName(ctx, dbName)
+// ObtainDbByDbType 根据db类型获取数据源
+func ObtainDbByDbType(ctx iris.Context, txFlag bool, dbType string) *gorm.DB {
+	switch dbType {
+	case "mysql":
+		return ObtainDb(ctx, txFlag)
+	case "clickhouse":
+		clientId, err := ObtainClientId(ctx)
+		if err != nil {
+			log.Error("租户id获取失败，请检查token情况，和本地缓存情况" + err.Error())
+		}
+		if config.Sysconfig.SystemEnv.Env == "prod" && config.Sysconfig.DataBases.ClientEnable {
+			clientIdStr := fmt.Sprintf("%d", clientId)
+			if txFlag {
+				return dbLib.GetClientDbTX(ctx, clientIdStr, "clickhouse")
+			} else {
+				return dbLib.GetDbByName(clientIdStr, "clickhouse")
+			}
+		} else {
+			if txFlag {
+				return dbLib.GetMasterDbTx(ctx, "clickhouse")
+			} else {
+				return dbLib.GetDbByName("", "clickhouse")
+			}
+		}
+	default:
+		panic("无法识别的数据库类型[" + dbType + "]")
+	}
 }

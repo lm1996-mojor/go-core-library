@@ -22,27 +22,29 @@ func renewDb() {
 			select {
 			case msg := <-sub.Channel():
 				log.Info("发现新的数据源订阅，处理订阅信息：" + msg.Channel)
-
+				//client_db_[dbOperate]_[dbType]_[clientId]
 				clientOperate := strings.ReplaceAll(msg.Channel, _const.ClientDbRedisPSubscribe, "")
+				// [dbOperate]_[dbType]_[clientId]
 				split := strings.Split(clientOperate, "_")
+				// [dbOperate]
 				switch split[0] {
 				case _const.DbOperateAdd:
 					// 遍历数据
 					log.Info("装载数据源")
-					// 判断新连接是否已经在缓存中
-					if _, ok := databases.GetDbMap()[split[2]]; ok {
+					// 判断新连接是否已经在缓存中 GetDbMapByType([dbType])[[clientId]]
+					if _, ok := databases.GetDbMapByType(split[1])[split[2]]; ok {
 						break
 					}
-					// 连接数据库
+					// 连接数据库 ConnectDB(dsn,[dbType])
 					db, err := databases.ConnectDB(msg.Payload, split[1])
 					if err != nil {
-						log.Error("连接数据库失败:" + split[2] + "，连接为【" + msg.Payload + "】")
+						log.Error("连接数据库失败:" + split[2] + ",数据库类型" + split[1] + "，连接为【" + msg.Payload + "】")
 					}
 					mutex.Lock()
 					databases.SetDbMap(split[2], split[1], db)
 					mutex.Unlock()
 				case _const.DbOperateUpdate:
-					// 连接数据库
+					// 连接数据库 ConnectDB(dsn,[dbType])
 					db, err := databases.ConnectDB(msg.Payload, split[1])
 					if err != nil {
 						log.Error("连接数据库失败:" + split[2] + "，连接为【" + msg.Payload + "】")

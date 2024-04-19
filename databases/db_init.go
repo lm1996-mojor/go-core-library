@@ -53,8 +53,10 @@ func GetDbMapByType(dbType string) map[string]*gorm.DB {
 func SetDbMap(key string, dbType string, db *gorm.DB) {
 	switch dbType {
 	case "mysql":
+		mysqlDbMap[key] = nil
 		mysqlDbMap[key] = db
 	case "clickhouse":
+		clickhouseDbMap[key] = nil
 		clickhouseDbMap[key] = db
 	}
 }
@@ -233,7 +235,7 @@ func initClientDB() {
 	}
 }
 
-// 打开数据库连接
+// ConnectDB 打开数据库连接
 func ConnectDB(dsn string, dbType string) (db *gorm.DB, err error) {
 	//通过传输进来的dsn信息，使用mysql.open方法打开数据的连接，并配置gorm.config结构体相关的信息
 	// NamingStrategy ：取消默认表名
