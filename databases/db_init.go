@@ -120,7 +120,7 @@ func initCustomizedDB() {
 		dsn := ""
 		switch database.DbType {
 		case "mysql":
-			dsn = database.DbUser + ":" + database.DbPass + "@tcp(" + database.Host + ":" +
+			dsn = database.DbUser + ":" + database.DbPass + "@" + database.DbConnProto + "(" + database.Host + ":" +
 				database.Port + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 			//打开连接
 			clog.Info("自定义数据库连接：" + dsn)
@@ -197,7 +197,7 @@ func initClientDB() {
 		dsn := ""
 		switch database.DbType {
 		case "mysql":
-			dsn = database.DbUser + ":" + database.DbPass + "@tcp(" + database.DbHost + ":" +
+			dsn = database.DbUser + ":" + database.DbPass + "@" + database.DbConnProto + "(" + database.DbHost + ":" +
 				database.DbPort + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 			//打开连接
 			clog.Info("租户数据库连接：" + dsn)
