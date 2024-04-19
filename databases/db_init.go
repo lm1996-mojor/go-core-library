@@ -34,6 +34,7 @@ type clientDb struct {
 	DbPass      string `json:"dbPass,omitempty"`      // 租户专属数据库密码
 	DbType      string `json:"dbType,omitempty"`      // 租户专属数据库类型（mysql/Oracle/PostgreSQL/DB2/SQL Server、MariaDB）
 	DbConnProto string `json:"dbConnProto,omitempty"` // 租户专属数据库连接协议（tcp/http/https/udp等）
+	DbConnArgs  string `json:"dbConnArgs,omitempty"`  // 租户专属数据库连接参数(根据连接的数据库类型不同，自由填写不同的值)
 	EnvType     int8   `json:"envType,omitempty"`     // 数据库环境类型（1 线上 2 开发  3 测试 4 体验）
 }
 
@@ -117,50 +118,30 @@ func initCustomizedDB() {
 	dbInfoList := config.Sysconfig.DataBases.DbInfoList
 	for _, database := range dbInfoList {
 		//创建临时数据库连接变量
-		dsn := ""
+		dsn, err1 := GetDbDsn(database.DbConnProto, database.Host, database.Port, database.DbUser, database.DbPass, database.DbName, database.DbType, "")
+		if err1 != nil {
+			panic(err1)
+		}
+		clog.Info("租户数据库连接[type: " + database.DbType + "]：" + dsn)
+		db, err := ConnectDB(dsn, database.DbType)
+		if err != nil {
+			panic("租户数据库连接错误: " + err.Error())
+		}
+		//定制key,将打开的连接存入到map中
+		mutex.Lock()
 		switch database.DbType {
 		case "mysql":
-			dsn = database.DbUser + ":" + database.DbPass + "@" + database.DbConnProto + "(" + database.Host + ":" +
-				database.Port + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
-			//打开连接
-			clog.Info("自定义数据库连接：" + dsn)
-			db, err := ConnectDB(dsn, database.DbType)
-			if err != nil {
-				panic("自定义数据库连接错误: " + err.Error())
-			}
-			//定制key,将打开的连接存入到map中
-			mutex.Lock()
 			mysqlDbMap[database.DbName] = db
-			mutex.Unlock()
 		case "clickhouse":
-			//"tcp://192.168.0.62:9000/tutorial?&username=default&password=&read_timeout=10s"
-			dsn = fmt.Sprintf("%s://%s:%s/%s?&username=%s&password=%s&read_timeout=10s",
-				database.DbConnProto,
-				database.Host,
-				database.Port,
-				database.DbName,
-				database.DbUser,
-				database.DbPass,
-			)
-			//打开连接
-			clog.Info("自定义数据库连接：" + dsn)
-			db, err := ConnectDB(dsn, database.DbType)
-			if err != nil {
-				panic("自定义数据库连接错误: " + err.Error())
-			}
-			//定制key,将打开的连接存入到map中
-			mutex.Lock()
 			clickhouseDbMap[database.DbName] = db
-			mutex.Unlock()
-		default:
-			panic("无法识别的数据库类型:[" + database.DbType + "]")
 		}
+		mutex.Unlock()
 	}
 }
 
 // InitClientDB 初始化租户数据库信息
 func initClientDB() {
-	platformDbConnectAddress := "root:123.com@tcp(192.168.0.62:62232)/platform_management?charset=utf8&parseTime=True&loc=Local"
+	platformDbConnectAddress := "root:123.com@tcp(192.168.0.62:62232)/platform_management?charset=utf8mb4&parseTime=True&loc=Local"
 	if config.Sysconfig.SystemEnv.Env == "prod" {
 		if config.Sysconfig.DataBases.PDns != "" {
 			// 链接初次解密
@@ -195,43 +176,24 @@ func initClientDB() {
 	for _, database := range dbInfoList {
 		//创建临时数据库连接变量
 		dsn := ""
+		dsn, err1 = GetDbDsn(database.DbConnProto, database.DbHost, database.DbPort, database.DbUser, database.DbPass, database.DbName, database.DbType, database.DbConnArgs)
+		if err1 != nil {
+			panic(err1)
+		}
+		clog.Info("租户数据库连接[type: " + database.DbType + "]：" + dsn)
+		db, err := ConnectDB(dsn, database.DbType)
+		if err != nil {
+			panic("租户数据库连接错误: " + err.Error())
+		}
+		//定制key,将打开的连接存入到map中
+		mutex.Lock()
 		switch database.DbType {
 		case "mysql":
-			dsn = database.DbUser + ":" + database.DbPass + "@" + database.DbConnProto + "(" + database.DbHost + ":" +
-				database.DbPort + ")/" + database.DbName + "?charset=utf8mb4&parseTime=True&loc=Local"
-			//打开连接
-			clog.Info("租户数据库连接：" + dsn)
-			db, err := ConnectDB(dsn, database.DbType)
-			if err != nil {
-				panic("租户数据库连接错误: " + err.Error())
-			}
-			//定制key,将打开的连接存入到map中
-			mutex.Lock()
 			mysqlDbMap[fmt.Sprintf("%d", database.ClientId)] = db
-			mutex.Unlock()
 		case "clickhouse":
-			//"tcp://192.168.0.62:9000/tutorial?&username=default&password=&read_timeout=10s"
-			dsn = fmt.Sprintf("%s://%s:%s/%s?&username=%s&password=%s&read_timeout=10s",
-				database.DbConnProto,
-				database.DbHost,
-				database.DbPort,
-				database.DbName,
-				database.DbUser,
-				database.DbPass,
-			)
-			//打开连接
-			clog.Info("租户数据库连接：" + dsn)
-			db, err := ConnectDB(dsn, database.DbType)
-			if err != nil {
-				panic("租户数据库连接错误: " + err.Error())
-			}
-			//定制key,将打开的连接存入到map中
-			mutex.Lock()
 			clickhouseDbMap[fmt.Sprintf("%d", database.ClientId)] = db
-			mutex.Unlock()
-		default:
-			panic("无法识别的数据库类型:[" + database.DbType + "]")
 		}
+		mutex.Unlock()
 	}
 }
 

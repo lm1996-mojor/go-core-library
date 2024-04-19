@@ -2,6 +2,7 @@ package databases
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/kataras/iris/v12"
@@ -100,4 +101,45 @@ func TransactionHandler(ctx iris.Context, err interface{}) {
 		}
 		return true
 	})
+}
+
+func GetDbDsn(dbConnProto, dbHost, dbPort, dbUser, dbPass, dbName, dbType string, dbConnArgs string) (string, error) {
+	dsn := ""
+	switch dbType {
+	case "mysql":
+		//"root:123.com@tcp(192.168.0.62:62232)/dbname?argsName1=args1&argsNameN=argsN"
+		dsn = dbUser + ":" + dbPass + "@" + dbConnProto + "(" + dbHost + ":" + dbPort + ")/"
+		if dbName != "" && len(dbName) > 0 {
+			dsn = dsn + dbName
+		}
+		if dbConnArgs != "" && len(dbConnArgs) > 0 {
+			dsn = dsn + "?" + dbConnArgs
+		} else {
+			// 设置默认连接参数
+			dsn = dsn + "?charset=utf8mb4&parseTime=True&loc=Local"
+		}
+	case "clickhouse":
+		//"tcp://192.168.0.62:9000/tutorial?&username=default&password=&read_timeout=10s"
+		dsn = dbConnProto + "://" + dbHost + ":" + dbPort
+		if dbName != "" && len(dbName) > 0 {
+			dsn = "/" + dsn + dbName
+		}
+		if dbUser == "" {
+			// 设置默认用户名
+			dbUser = "default"
+		}
+		dsn = dsn + "?username=" + dbUser
+		if dbPass != "" && len(dbPass) > 0 {
+			dsn = dsn + "&password=" + dbPass
+		}
+		if dbConnArgs != "" && len(dbConnArgs) > 0 {
+			dsn = dsn + "?" + dbConnArgs
+		} else {
+			// 设置默认连接参数
+			dsn = dsn + "&read_timeout=10s"
+		}
+	default:
+		return "", errors.New("数据库类型无法识别")
+	}
+	return dsn, nil
 }
