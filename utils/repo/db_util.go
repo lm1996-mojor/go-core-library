@@ -144,3 +144,13 @@ func ObtainDbByDbType(ctx iris.Context, txFlag bool, dbType string) *gorm.DB {
 		panic("无法识别的数据库类型[" + dbType + "]")
 	}
 }
+
+// ObtainCustomDbByDbNameWithDbType 根据数据类型和自定义的数据源名称获取自定义数据源对象
+func ObtainCustomDbByDbNameWithDbType(dbName string, dbType string) (db *gorm.DB) {
+	return dbLib.GetDbByName(dbName, dbType)
+}
+
+// ObtainCustomTxDbByDbNameAndDbType 根据数据类型和自定义的数据源名称获取带事务的自定义数据源对象
+func ObtainCustomTxDbByDbNameAndDbType(ctx iris.Context, dbName string, dbType string) (tx *gorm.DB) {
+	return dbLib.GetCustomDbTxByDbName(ctx, dbName, dbType)
+}
