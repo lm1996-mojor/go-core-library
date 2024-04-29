@@ -122,10 +122,10 @@ func initCustomizedDB() {
 		if err1 != nil {
 			panic(err1)
 		}
-		clog.Info("租户数据库连接[type: " + database.DbType + "]：" + dsn)
+		clog.Info("自定义数据库连接[type: " + database.DbType + "]：" + dsn)
 		db, err := ConnectDB(dsn, database.DbType)
 		if err != nil {
-			panic("租户数据库连接错误: " + err.Error())
+			panic("自定义数据库连接错误: " + err.Error())
 		}
 		//定制key,将打开的连接存入到map中
 		mutex.Lock()
