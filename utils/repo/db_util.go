@@ -135,9 +135,9 @@ func ObtainDbByDbType(ctx iris.Context, txFlag bool, dbType string) *gorm.DB {
 			}
 		} else {
 			if txFlag {
-				return dbLib.GetMasterDbTx(ctx, "clickhouse")
+				return ObtainCustomTxDbByDbNameAndDbType(ctx, "human_resource_management", "clickhouse")
 			} else {
-				return dbLib.GetDbByName("", "clickhouse")
+				return ObtainCustomDbByDbNameWithDbType("human_resource_management", "clickhouse")
 			}
 		}
 	default:
