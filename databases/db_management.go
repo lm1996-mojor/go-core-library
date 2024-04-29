@@ -122,7 +122,7 @@ func GetDbDsn(dbConnProto, dbHost, dbPort, dbUser, dbPass, dbName, dbType string
 		//"tcp://192.168.0.62:9000/tutorial?&username=default&password=&read_timeout=10s"
 		dsn = dbConnProto + "://" + dbHost + ":" + dbPort
 		if dbName != "" && len(dbName) > 0 {
-			dsn = "/" + dsn + dbName
+			dsn = dsn + "/" + dbName
 		}
 		if dbUser == "" {
 			// 设置默认用户名

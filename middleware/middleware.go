@@ -116,7 +116,7 @@ var globalMiddleWares = []MiddleWare{
 }
 
 // web中间件，比global中间件晚运行
-var singleMiddleWares = []MiddleWare{}
+var singleMiddleWares = make([]MiddleWare, 0)
 
 // AppendSingleMiddleWares 新增全局路由的中间件，比global中间件晚运行
 func AppendSingleMiddleWares(item []MiddleWare) {
