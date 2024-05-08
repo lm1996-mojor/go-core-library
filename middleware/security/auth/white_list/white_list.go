@@ -110,7 +110,7 @@ func AppendList(items []Url) {
 	}
 	for _, item := range items {
 		if item.Method == "" {
-			panic("白名单请求方式不能为空")
+			panic("白名单[" + item.ReqUrl + "]请求方式不能为空")
 		}
 		if item.CheckType < 1 || item.CheckType > 2 {
 			panic("接口检查类型不符合规范，仅支持T（免token）/A（免鉴权）")
