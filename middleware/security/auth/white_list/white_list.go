@@ -10,7 +10,8 @@ import (
 )
 
 type Url struct {
-	ReqUrl    string //接口路径
+	ReqUrl    string // 接口路径
+	Method    string // 请求方式
 	CheckType int    //接口检查类型(1:免token 2：免鉴权)
 }
 
@@ -48,40 +49,36 @@ func InitSystemList() []Url {
 	return defaultWhiteList
 }
 
-func tokenWhiteListInit() []Url {
-	defaultWhiteList := make([]Url, 0)
+func tokenWhiteListInit() (tokenWhiteList []Url) {
 	if config.Sysconfig.Detection.Token {
 		clog.Info("获取token白名单....")
-		var tokenWhiteList []string
 		db := databases.GetDbByName("platform_management", "mysql").Table("permissions_menu").
 			Where("is_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1)
 		if config.Sysconfig.App.GlobalReqPathPrefix != "" && len(config.Sysconfig.App.GlobalReqPathPrefix) > 0 && config.Sysconfig.App.GlobalReqPathPrefix != "null" {
 			db = db.Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%")
 		}
-		db.Select("req_url").Find(&tokenWhiteList)
-		for _, url := range tokenWhiteList {
-			defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: 1})
+		db.Select("req_url,method").Find(&tokenWhiteList)
+		for i := 0; i < len(tokenWhiteList); i++ {
+			tokenWhiteList[i].CheckType = 1
 		}
 	}
-	return defaultWhiteList
+	return tokenWhiteList
 }
 
-func authWhiteListInit() []Url {
-	defaultWhiteList := make([]Url, 0)
+func authWhiteListInit() (authWhiteList []Url) {
 	if config.Sysconfig.Detection.Authentication {
 		clog.Info("获取权限白名单....")
-		var authWhiteList []string
 		db := databases.GetDbByName("platform_management", "mysql").Table("permissions_menu").
 			Where("is_auth_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4)
 		if config.Sysconfig.App.GlobalReqPathPrefix != "" && len(config.Sysconfig.App.GlobalReqPathPrefix) > 0 && config.Sysconfig.App.GlobalReqPathPrefix != "null" {
 			db = db.Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%")
 		}
-		db.Select("req_url").Find(&authWhiteList)
-		for _, url := range authWhiteList {
-			defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: url, CheckType: 2})
+		db.Select("req_url,method").Find(&authWhiteList)
+		for i := 0; i < len(authWhiteList); i++ {
+			authWhiteList[i].CheckType = 2
 		}
 	}
-	return defaultWhiteList
+	return authWhiteList
 }
 
 func timedExecution() {
@@ -97,9 +94,9 @@ func DelayRefreshList() {
 	items := InitSystemList()
 	for _, item := range items {
 		if item.CheckType == 1 {
-			tokenWhiteListMap[item.ReqUrl] = "TOKEN"
+			tokenWhiteListMap[item.ReqUrl] = item.Method
 		} else {
-			authWhiteListMap[item.ReqUrl] = "AUTHENTICATION"
+			authWhiteListMap[item.ReqUrl] = item.Method
 		}
 	}
 	clog.Info("白名单刷新完成")
@@ -112,56 +109,61 @@ func AppendList(items []Url) {
 		return
 	}
 	for _, item := range items {
+		if item.Method == "" {
+			panic("白名单请求方式不能为空")
+		}
 		if item.CheckType < 1 || item.CheckType > 2 {
 			panic("接口检查类型不符合规范，仅支持T（免token）/A（免鉴权）")
 		}
 		if item.CheckType == 1 {
 			if _, ok := tokenWhiteListMap[item.ReqUrl]; !ok {
-				tokenWhiteListMap[item.ReqUrl] = "TOKEN"
+				tokenWhiteListMap[item.ReqUrl] = item.Method
 			}
 			continue
 		} else {
 			if _, ok := authWhiteListMap[item.ReqUrl]; !ok {
-				authWhiteListMap[item.ReqUrl] = "AUTHENTICATION"
+				authWhiteListMap[item.ReqUrl] = item.Method
 			}
 			continue
 		}
 	}
 }
 
-func InList(path string, checkType int) bool {
+func InList(path string, method string, checkType int) bool {
 	msgStr := ""
 	if checkType == 1 {
 		msgStr = "token"
-		return match(path, tokenWhiteListMap, msgStr)
+		return match(path, tokenWhiteListMap, method, msgStr)
 	} else {
 		msgStr = "权限"
-		return match(path, authWhiteListMap, msgStr)
+		return match(path, authWhiteListMap, method, msgStr)
 	}
 }
 
-func match(reqPath string, srcReqPathSlice map[string]string, msgStr string) bool {
+func match(reqPath string, srcReqPathSlice map[string]string, method string, msgStr string) bool {
 	// user/{id}
-	for key, _ := range srcReqPathSlice {
-		if strings.Contains(key, reqPath) {
-			if strings.Contains(key, "{") {
-				if strings.Count(key[strings.Index(key, "{")-1:], "/") == strings.Count(reqPath[strings.Index(key, "{")-1:], "/") {
-					if key[0:strings.Index(key, "{")] == reqPath[0:len(key[0:strings.Index(key, "{")])] {
+	for srcReqPath, srcMethod := range srcReqPathSlice {
+		if srcMethod == method {
+			if strings.Contains(srcReqPath, reqPath) {
+				if strings.Contains(srcReqPath, "{") {
+					if strings.Count(srcReqPath[strings.Index(srcReqPath, "{")-1:], "/") == strings.Count(reqPath[strings.Index(srcReqPath, "{")-1:], "/") {
+						if srcReqPath[0:strings.Index(srcReqPath, "{")] == reqPath[0:len(srcReqPath[0:strings.Index(srcReqPath, "{")])] {
+							clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
+							return true
+						}
+					} else if srcReqPath == reqPath {
 						clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
 						return true
 					}
-				} else if key == reqPath {
+				} else if srcReqPath == reqPath {
 					clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
 					return true
 				}
-			} else if key == reqPath {
-				clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
-				return true
-			}
-		} else {
-			if key == reqPath {
-				clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
-				return true
+			} else {
+				if srcReqPath == reqPath {
+					clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
+					return true
+				}
 			}
 		}
 	}

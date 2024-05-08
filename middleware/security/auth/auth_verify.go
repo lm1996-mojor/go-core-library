@@ -23,7 +23,7 @@ func Verify(ctx iris.Context) {
 		return
 	}
 	reqUrl := ctx.Request().URL.Path
-	if white_list.InList(reqUrl, 2) {
+	if white_list.InList(reqUrl, ctx.Request().Method, 2) {
 		log.Info("当前接口无需鉴权")
 		ctx.Next()
 		return
