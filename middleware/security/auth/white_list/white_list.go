@@ -22,7 +22,7 @@ var authWhiteListMap = make(map[string]string)
 func Init() {
 	clog.Info("初始化路由白名单")
 	defaultWhiteList := make([]Url, 0)
-	defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: "/consul/ser/health", CheckType: 1})
+	defaultWhiteList = append(defaultWhiteList, Url{ReqUrl: "/consul/ser/health", Method: "get", CheckType: 1})
 	list := InitSystemList()
 	if len(list) > 0 {
 		defaultWhiteList = append(defaultWhiteList, list...)
@@ -143,7 +143,7 @@ func InList(path string, method string, checkType int) bool {
 func match(reqPath string, srcReqPathSlice map[string]string, method string, msgStr string) bool {
 	// user/{id}
 	for srcReqPath, srcMethod := range srcReqPathSlice {
-		if srcMethod == method {
+		if strings.ToUpper(srcMethod) == strings.ToUpper(method) {
 			if strings.Contains(srcReqPath, reqPath) {
 				if strings.Contains(srcReqPath, "{") {
 					if strings.Count(srcReqPath[strings.Index(srcReqPath, "{")-1:], "/") == strings.Count(reqPath[strings.Index(srcReqPath, "{")-1:], "/") {
