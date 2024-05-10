@@ -15,16 +15,9 @@ import (
 func AddBodyParam(ctx iris.Context, srcBody io.Reader, addParam map[string]interface{}) iris.Context {
 	currentReqHeader := ctx.GetHeader("Content-Type")
 	if strings.Contains(currentReqHeader, "multipart/form-data") {
-		body, contentType, contentLength := fileReqHandler(ctx, addParam)
-		ctx.Request().Body = io.NopCloser(body)
-		ctx.Header("Content-Type", contentType)
-		ctx.Request().ContentLength = contentLength
-		return ctx
+		return fileReqHandler(ctx, addParam)
 	} else {
-		body, contentLength := usualReqHandler(srcBody, addParam)
-		ctx.Request().Body = io.NopCloser(body)
-		ctx.Request().ContentLength = contentLength
-		return ctx
+		return usualReqHandler(ctx, srcBody, addParam)
 	}
 
 	//var srcBodyMap interface{}
@@ -43,25 +36,28 @@ func AddBodyParam(ctx iris.Context, srcBody io.Reader, addParam map[string]inter
 	//newBody = bytes.NewReader(marshal)
 	//return newBody
 }
-func usualReqHandler(srcBody io.Reader, addParam map[string]interface{}) (newBody io.Reader, contentLength int64) {
+func usualReqHandler(ctx iris.Context, srcBody io.Reader, addParam map[string]interface{}) iris.Context {
 	var srcBodyMap interface{}
 	srcData, _ := io.ReadAll(srcBody)
 	if len(srcData) > 0 {
 		err := json.Unmarshal(srcData, &srcBodyMap)
 		if err != nil {
+			log.Error("数据转换失败:" + err.Error())
 			panic(err)
 		}
 		addParam[_const.OriginalReqParam] = srcBodyMap
 	}
 	marshal, err1 := json.Marshal(addParam)
 	if err1 != nil {
+		log.Error("数据转换失败:" + err1.Error())
 		panic(err1)
 	}
-	newBody = bytes.NewReader(marshal)
-	return newBody, int64(len(marshal))
+	ctx.Request().Body = io.NopCloser(bytes.NewReader(marshal))
+	ctx.Request().ContentLength = int64(len(marshal))
+	return ctx
 }
 
-func fileReqHandler(ctx iris.Context, addParam map[string]interface{}) (newBody io.Reader, contentType string, contentLength int64) {
+func fileReqHandler(ctx iris.Context, addParam map[string]interface{}) iris.Context {
 	//var srcBodyMap interface{}
 	_, fileHeader, _ := ctx.FormFile(_const.FileRequestKey)
 	//fileHeaders := ctx.Request().MultipartForm.File[fileKey]
@@ -107,5 +103,9 @@ func fileReqHandler(ctx iris.Context, addParam map[string]interface{}) (newBody 
 	newParamJSON, _ := json.Marshal(addParam)
 	w.WriteField(_const.HttpSessionParam, string(newParamJSON))
 	w.Close()
-	return &b, w.FormDataContentType(), int64(b.Len())
+	ctx.Request().Body = io.NopCloser(&b)
+	ctx.Header("Content-Type", w.FormDataContentType())
+	ctx.Request().ContentLength = int64(b.Len())
+	ctx.Request().Form.Set(_const.HttpSessionParam, string(newParamJSON))
+	return ctx
 }
