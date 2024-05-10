@@ -15,14 +15,18 @@ import (
 func AddBodyParam(ctx iris.Context, srcBody io.Reader, addParam map[string]interface{}) iris.Context {
 	currentReqHeader := ctx.GetHeader("Content-Type")
 	if strings.Contains(currentReqHeader, "multipart/form-data") {
-		body, contentType := fileReqHandler(ctx, addParam)
+		body, contentType, contentLength := fileReqHandler(ctx, addParam)
 		ctx.Request().Body = io.NopCloser(body)
 		ctx.Header("Content-Type", contentType)
+		ctx.Request().ContentLength = contentLength
 		return ctx
 	} else {
-		ctx.Request().Body = io.NopCloser(usualReqHandler(srcBody, addParam))
+		body, contentLength := usualReqHandler(srcBody, addParam)
+		ctx.Request().Body = io.NopCloser(body)
+		ctx.Request().ContentLength = contentLength
 		return ctx
 	}
+
 	//var srcBodyMap interface{}
 	//srcData, _ := io.ReadAll(srcBody)
 	//if len(srcData) > 0 {
@@ -39,7 +43,7 @@ func AddBodyParam(ctx iris.Context, srcBody io.Reader, addParam map[string]inter
 	//newBody = bytes.NewReader(marshal)
 	//return newBody
 }
-func usualReqHandler(srcBody io.Reader, addParam map[string]interface{}) (newBody io.Reader) {
+func usualReqHandler(srcBody io.Reader, addParam map[string]interface{}) (newBody io.Reader, contentLength int64) {
 	var srcBodyMap interface{}
 	srcData, _ := io.ReadAll(srcBody)
 	if len(srcData) > 0 {
@@ -54,10 +58,10 @@ func usualReqHandler(srcBody io.Reader, addParam map[string]interface{}) (newBod
 		panic(err1)
 	}
 	newBody = bytes.NewReader(marshal)
-	return newBody
+	return newBody, int64(len(marshal))
 }
 
-func fileReqHandler(ctx iris.Context, addParam map[string]interface{}) (newBody io.Reader, contentType string) {
+func fileReqHandler(ctx iris.Context, addParam map[string]interface{}) (newBody io.Reader, contentType string, contentLength int64) {
 	//var srcBodyMap interface{}
 	_, fileHeader, _ := ctx.FormFile(_const.FileRequestKey)
 	//fileHeaders := ctx.Request().MultipartForm.File[fileKey]
