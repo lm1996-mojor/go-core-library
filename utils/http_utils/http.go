@@ -107,5 +107,5 @@ func fileReqHandler(ctx iris.Context, addParam map[string]interface{}) (newBody 
 	newParamJSON, _ := json.Marshal(addParam)
 	w.WriteField(_const.HttpSessionParam, string(newParamJSON))
 	w.Close()
-	return &b, w.FormDataContentType()
+	return &b, w.FormDataContentType(), int64(b.Len())
 }
