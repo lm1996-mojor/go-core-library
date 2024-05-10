@@ -26,3 +26,8 @@ const (
 	DbOperateUpdate = "update"
 	DbOperateDel    = "del"
 )
+
+const (
+	FileRequestKey   = "file"
+	HttpSessionParam = "sessionParam"
+)

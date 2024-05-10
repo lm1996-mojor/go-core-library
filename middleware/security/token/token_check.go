@@ -3,7 +3,6 @@ package token
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"reflect"
 	"strings"
 
@@ -114,7 +113,7 @@ func CheckIdentity(ctx iris.Context) {
 			addParamMap[_const.UserCode] = tokenClaims[_const.UserCode].(string)
 			addParamMap[_const.JwtData] = tokenClaims
 			addParamMap[_const.TokenOriginal] = token
-			ctx.Request().Body = io.NopCloser(http_utils.AddBodyParam(ctx.Request().Body, addParamMap))
+			ctx = http_utils.AddBodyParam(ctx, ctx.Request().Body, addParamMap)
 		}
 		ctx.Next()
 	} else {

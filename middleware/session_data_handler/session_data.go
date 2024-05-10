@@ -23,9 +23,23 @@ func SessionDataInit(ctx iris.Context) {
 		ctx.Next()
 		return
 	}
+	currentReqHeader := ctx.GetHeader("Content-Type")
+	if strings.Contains(currentReqHeader, "multipart/form-data") {
+		sessionParam := ctx.FormValue(_const.HttpSessionParam)
+		storeParamHandler(ctx, []byte(sessionParam))
+		ctx.Request().Form.Del(_const.HttpSessionParam)
+	} else {
+		all, _ := io.ReadAll(ctx.Request().Body)
+		param := storeParamHandler(ctx, all)
+		marshal, _ := json.Marshal(param[_const.OriginalReqParam])
+		ctx.Request().Body = io.NopCloser(bytes.NewReader(marshal))
+	}
+	ctx.Next()
+}
+
+func storeParamHandler(ctx iris.Context, sessionParam []byte) map[string]interface{} {
 	param := make(map[string]interface{})
-	all, _ := io.ReadAll(ctx.Request().Body)
-	json.Unmarshal(all, &param)
+	json.Unmarshal(sessionParam, &param)
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientID, param[_const.ClientID].(string))
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.ClientCode, param[_const.ClientCode].(string))
 	store.Set(http_session.GetCurrentHttpSessionUniqueKey(ctx)+_const.UserId, param[_const.UserId].(string))
@@ -39,7 +53,5 @@ func SessionDataInit(ctx iris.Context) {
 	delete(param, _const.UserCode)
 	delete(param, _const.JwtData)
 	delete(param, _const.TokenOriginal)
-	marshal, _ := json.Marshal(param[_const.OriginalReqParam])
-	ctx.Request().Body = io.NopCloser(bytes.NewReader(marshal))
-	ctx.Next()
+	return param
 }
