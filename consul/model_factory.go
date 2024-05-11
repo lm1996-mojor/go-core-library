@@ -42,6 +42,11 @@ func FindSpecifyingServiceList(serviceName string) (serviceList []ServiceLibrary
 			serviceList = append(serviceList, service)
 		}
 	}
+	if len(serviceName) <= 0 {
+		log.Error("没有找到对应服务器")
+		panic("服务器错错误")
+	}
+
 	// 做排序操作：降序（将权重最高的服务放在前面）
 	sort.Slice(serviceList, func(i, j int) bool {
 		return serviceList[i].Weight > serviceList[j].Weight
