@@ -116,7 +116,7 @@ func GetDbDsn(dbConnProto, dbHost, dbPort, dbUser, dbPass, dbName, dbType string
 			dsn = dsn + "?" + dbConnArgs
 		} else {
 			// 设置默认连接参数
-			dsn = dsn + "?charset=utf8mb4&parseTime=True&loc=Local&timezone=" + config.Sysconfig.App.TimeZone
+			dsn = dsn + "?charset=utf8mb4&parseTime=True&loc=Local"
 		}
 	case "clickhouse":
 		//"tcp://192.168.0.62:9000/tutorial?&username=default&password=&read_timeout=10s"
@@ -136,7 +136,7 @@ func GetDbDsn(dbConnProto, dbHost, dbPort, dbUser, dbPass, dbName, dbType string
 			dsn = dsn + "?" + dbConnArgs
 		} else {
 			// 设置默认连接参数
-			dsn = dsn + "&read_timeout=10s&timezone=Asia/Shanghai" + config.Sysconfig.App.TimeZone
+			dsn = dsn + "&read_timeout=10s"
 		}
 	default:
 		return "", errors.New("数据库类型无法识别")
