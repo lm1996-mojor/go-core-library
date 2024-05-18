@@ -160,10 +160,11 @@ func ServerStatusCheck() {
 	if !ok {
 		RefreshRegister()
 	}
-	filter, err := GetClient().Agent().ChecksWithFilter("ServiceID Equal " + value.(string))
+	filter, err := GetClient().Agent().ChecksWithFilter("ServiceID == " + value.(string))
 	if err != nil {
 		log.Error("Failed to get check list：" + err.Error())
 		tasker_factory.StopTask("ServerStatusCheck")
+		return
 	}
 	if _, flag := filter[value.(string)]; !flag {
 		RefreshRegister()
