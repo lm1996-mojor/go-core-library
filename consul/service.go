@@ -166,9 +166,10 @@ func ServerStatusCheck() {
 		tasker_factory.StopTask("ServerStatusCheck")
 		return
 	}
-	if _, flag := filter[value.(string)]; !flag {
+	if _, flag := filter["service:"+value.(string)]; !flag {
 		RefreshRegister()
 	}
+
 	log.Info("服务状态检查完成")
 }
 
