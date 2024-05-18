@@ -77,6 +77,7 @@ func StopTask(key string) {
 		if t.TaskStatus {
 			t.TaskStatus = false
 			t.TaskBody.Stop()
+			log.Info("指定任务已停止：(" + key + ")")
 			return
 		} else {
 			log.WarnF("当前任务已经停止，无需重复操作key:[%s:id:(%d)]", key, t.TaskId)
