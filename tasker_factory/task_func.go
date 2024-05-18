@@ -20,7 +20,7 @@ func AddTask(taskStoreKey, taskDesc, spec string, cmd func(), opts ...cron.Optio
 	}
 	task.TaskId = taskId
 	task.TaskDesc = taskDesc
-	TaskMap.Store(taskStoreKey, task)
+	TaskMap.Store(taskStoreKey, &task)
 	taskKeys = append(taskKeys, taskStoreKey)
 	return nil
 }
@@ -36,7 +36,7 @@ func InitTask(opts ...cron.Option) Task {
 func BatchedRunTasker() {
 	for _, key := range taskKeys {
 		value, _ := TaskMap.Load(key)
-		task := value.(Task)
+		task := value.(*Task)
 		if task.TaskStatus {
 			continue
 		}
@@ -49,7 +49,7 @@ func BatchedRunTasker() {
 func BatchedRunSpecifiedTask(keys []string) {
 	for _, key := range keys {
 		value, _ := TaskMap.Load(key)
-		task := value.(Task)
+		task := value.(*Task)
 		if task.TaskStatus {
 			continue
 		}
@@ -61,7 +61,7 @@ func BatchedRunSpecifiedTask(keys []string) {
 // RunTask 启动单个指定任务
 func RunTask(key string) {
 	value, _ := TaskMap.Load(key)
-	task := value.(Task)
+	task := value.(*Task)
 	if task.TaskStatus {
 		return
 	}
@@ -175,7 +175,7 @@ func RegexpRemoveTask(r *regexp.Regexp) error {
 // RenewTaskNextTime 更新指定任务的下次执行时间
 func RenewTaskNextTime(key string, nextSpec string) error {
 	value, _ := TaskMap.Load(key)
-	task := value.(Task)
+	task := value.(*Task)
 	job := task.TaskJob
 	opts := task.TaskOpt
 	desc := task.TaskDesc
