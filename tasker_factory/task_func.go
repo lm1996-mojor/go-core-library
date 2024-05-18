@@ -73,7 +73,7 @@ func RunTask(key string) {
 func StopTask(key string) {
 	v, ok := TaskMap.Load(key)
 	if ok {
-		t := v.(Task)
+		t := v.(*Task)
 		if t.TaskStatus {
 			t.TaskStatus = false
 			t.TaskBody.Stop()
@@ -120,7 +120,7 @@ func RemoveTask(key string) error {
 	if !ok {
 		return errors.New("没有找到指定的任务: " + key)
 	}
-	t := v.(Task)
+	t := v.(*Task)
 	taskId := t.TaskId
 	if t.TaskStatus {
 		return errors.New("当前任务(" + key + ")id为：(" + cast.ToString(taskId) + ")正在执行中，请先停止任务。再进行移除")
@@ -144,7 +144,7 @@ func BatchRemoveTask(keys []string) error {
 			if !ok {
 				return errors.New("没有找到指定的任务: " + key)
 			}
-			t := v.(Task)
+			t := v.(*Task)
 			if i == len(keys)-1 {
 				replErrStr += fmt.Sprintf("[taskKey:[%s,id:(%d)]]", key, t.TaskId)
 			} else {
