@@ -3,6 +3,7 @@ package _const
 const (
 	CONFIG                                   = "application.yaml"        // 系统配置文件名
 	TokenType                                = "act"                     // token类型(自定义)
+	TToken                                   = "clek_temp"               // 仅限临时token
 	TokenSignature                           = "link_ease_platform"      // token令牌签名
 	DbLinkEncryptKey                         = "201dd1f39f184638"        // 数据库链接加密key
 	TokenName                                = "Authorization"           // 令牌Header存放key名称
