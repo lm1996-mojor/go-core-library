@@ -101,7 +101,10 @@ func CheckIdentity(ctx iris.Context) {
 				ctx.JSON(rest.FailCustom(401, "您没有访问该资源的权限", rest.ERROR))
 				return
 			}
-			srcScope := tokenClaims["useScope"].([]string)
+			var srcScope []string
+			for _, v := range tokenClaims["useScope"].([]interface{}) {
+				srcScope = append(srcScope, v.(string))
+			}
 			b := match(reqPath, srcScope, "get", "token")
 			if !b {
 				clog.Warn("请求路径不在临时token的授权范围内")
