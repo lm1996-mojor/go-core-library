@@ -25,7 +25,7 @@ func CheckIdentity(ctx iris.Context) {
 	utils.PrintCallerInfo(ctx)
 	reqPath := ctx.Path()
 	ctx.Values().Set("pass_label", "N")
-	if white_list.InList(reqPath, ctx.Request().Method, 1) || strings.Contains(reqPath, "platform_management") || strings.Contains(reqPath, "platform_inlet") {
+	if white_list.InList(reqPath, ctx.Request().Method, 1) || strings.Contains(reqPath, "platform_management") {
 		ctx.Values().Set("pass_label", "Y")
 		ctx.Next()
 		return
@@ -56,7 +56,7 @@ func CheckIdentity(ctx iris.Context) {
 	tokenService := consul.ObtainHighestWeightInServiceList(config.Sysconfig.Detection.TokenService)
 	if reflect.DeepEqual(tokenService, consul.ServiceLibrary{}) {
 		clog.Error("token检查：没有找到对应的token服务器")
-		ctx.JSON(rest.Result{Code: 404, Msg: "没有找到服务器", Data: nil, MsgType: rest.ERROR})
+		ctx.JSON(rest.FailCustom(404, "没有找到服务器", rest.ERROR))
 		return
 	}
 	url := tokenService.Proto + "://" + tokenService.Host + ":" + fmt.Sprintf("%d", tokenService.Port) + config.Sysconfig.Detection.TokenCheckServiceApiUrl
@@ -78,18 +78,41 @@ func CheckIdentity(ctx iris.Context) {
 	if result.Code == 200 {
 		//判断自定义的token类型是否正确
 		tokenClaims := result.Data.(map[string]interface{})["parse_token"].(map[string]interface{})
-		if t, ok := tokenClaims["token_type"].(string); ok && t != _const.TokenType && t != _const.TToken { //不是access token也不是临时token
+		if t, ok := tokenClaims["token_type"].(string); (ok && t != _const.TokenType && t != _const.TToken) || !ok { //不是access token也不是临时token
 			clog.Warn("令牌类型认证无效: " + err.Error())
 			clog.Warn("无效令牌：" + token)
 			ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
 			return
 		}
-		if t, ok := tokenClaims["token_single"].(string); ok && t != _const.TokenSignature {
+		if t, ok := tokenClaims["token_single"].(string); (ok && t != _const.TokenSignature) || !ok {
 			//不是access token
 			clog.Warn("令牌签名认证无效: " + err.Error())
 			clog.Warn("无效令牌：" + token)
 			ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
 			return
+		}
+		if t, ok := tokenClaims["token_type"].(string); ok && t == _const.TToken { //如果是临时token，则需要校验其授权范围
+			clog.Info("临时token授权范围校验中")
+			delTokenUrl := tokenService.Proto + "://" + tokenService.Host + ":" + fmt.Sprintf("%d", tokenService.Port) + "/platform_inlet/sso/d/t/token"
+			reqMdl := proxy.ParametricConstructionOfRemoteReqMdl(nil, nil, delTokenUrl, "DELETE", true, token)
+			if strings.ToUpper(ctx.Method()) != strings.ToUpper("Get") {
+				clog.Warn("请求路径不在临时token的授权范围内")
+				proxy.RequestAction(&reqMdl, "")
+				ctx.JSON(rest.FailCustom(401, "您没有访问该资源的权限", rest.ERROR))
+				return
+			}
+			srcScope := tokenClaims["useScope"].([]string)
+			b := match(reqPath, srcScope, "get", "token")
+			if !b {
+				clog.Warn("请求路径不在临时token的授权范围内")
+				proxy.ParametricConstructionOfRemoteReqMdl(nil, nil, delTokenUrl, "DELETE", true, token)
+				proxy.RequestAction(&reqMdl, "")
+				ctx.JSON(rest.FailCustom(401, "您没有访问该资源的权限", rest.ERROR))
+				return
+			}
+			clog.Info("临时token授权范围校验成功")
+			delTokenUrl = ""
+			reqMdl = proxy.RemoteReqMdl{}
 		}
 		// 以下所有数据都会在单次回话完成后进行清空
 		// 用于判断是否为超级管理员，主要用在鉴权时是否需要走权限系统
@@ -131,4 +154,35 @@ func parseResponseBody(respBody []byte) (rest.Result, error) {
 		return rest.Result{}, err
 	}
 	return result, nil
+}
+
+func match(reqPath string, srcReqPathSlice []string, method string, msgStr string) bool {
+	// user/{id}
+	for _, srcReqPath := range srcReqPathSlice {
+		if strings.ToUpper("get") == strings.ToUpper(method) {
+			if strings.Contains(srcReqPath, reqPath) {
+				if strings.Contains(srcReqPath, "{") {
+					if strings.Count(srcReqPath[strings.Index(srcReqPath, "{")-1:], "/") == strings.Count(reqPath[strings.Index(srcReqPath, "{")-1:], "/") {
+						if srcReqPath[0:strings.Index(srcReqPath, "{")] == reqPath[0:len(srcReqPath[0:strings.Index(srcReqPath, "{")])] {
+							clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
+							return true
+						}
+					} else if srcReqPath == reqPath {
+						clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
+						return true
+					}
+				} else if srcReqPath == reqPath {
+					clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
+					return true
+				}
+			} else {
+				if srcReqPath == reqPath {
+					clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：成功")
+					return true
+				}
+			}
+		}
+	}
+	clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：失败")
+	return false
 }

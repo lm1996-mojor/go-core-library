@@ -18,7 +18,7 @@ func SessionDataInit(ctx iris.Context) {
 	utils.PrintCallerInfo(ctx)
 	reqPath := ctx.Path()
 	ctx.Values().Set("pass_label", "N")
-	if white_list.InList(reqPath, ctx.Request().Method, 1) || strings.Contains(reqPath, "platform_management") || strings.Contains(reqPath, "platform_inlet") {
+	if white_list.InList(reqPath, ctx.Request().Method, 1) || strings.Contains(reqPath, "platform_management") {
 		ctx.Values().Set("pass_label", "Y")
 		ctx.Next()
 		return
