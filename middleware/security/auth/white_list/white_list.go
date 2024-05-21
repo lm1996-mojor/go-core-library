@@ -50,33 +50,29 @@ func InitSystemList() []Url {
 }
 
 func tokenWhiteListInit() (tokenWhiteList []Url) {
-	if config.Sysconfig.Detection.Token {
-		clog.Info("获取token白名单....")
-		db := databases.GetDbByName("platform_management", "mysql").Table("permissions_menu").
-			Where("is_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1)
-		if config.Sysconfig.App.GlobalReqPathPrefix != "" && len(config.Sysconfig.App.GlobalReqPathPrefix) > 0 && config.Sysconfig.App.GlobalReqPathPrefix != "null" {
-			db = db.Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%")
-		}
-		db.Select("req_url,method").Find(&tokenWhiteList)
-		for i := 0; i < len(tokenWhiteList); i++ {
-			tokenWhiteList[i].CheckType = 1
-		}
+	clog.Info("获取token白名单....")
+	db := databases.GetDbByName("platform_management", "mysql").Table("permissions_menu").
+		Where("is_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1)
+	if config.Sysconfig.App.GlobalReqPathPrefix != "" && len(config.Sysconfig.App.GlobalReqPathPrefix) > 0 && config.Sysconfig.App.GlobalReqPathPrefix != "null" {
+		db = db.Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%")
+	}
+	db.Select("req_url,method").Find(&tokenWhiteList)
+	for i := 0; i < len(tokenWhiteList); i++ {
+		tokenWhiteList[i].CheckType = 1
 	}
 	return tokenWhiteList
 }
 
 func authWhiteListInit() (authWhiteList []Url) {
-	if config.Sysconfig.Detection.Authentication {
-		clog.Info("获取权限白名单....")
-		db := databases.GetDbByName("platform_management", "mysql").Table("permissions_menu").
-			Where("is_auth_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4)
-		if config.Sysconfig.App.GlobalReqPathPrefix != "" && len(config.Sysconfig.App.GlobalReqPathPrefix) > 0 && config.Sysconfig.App.GlobalReqPathPrefix != "null" {
-			db = db.Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%")
-		}
-		db.Select("req_url,method").Find(&authWhiteList)
-		for i := 0; i < len(authWhiteList); i++ {
-			authWhiteList[i].CheckType = 2
-		}
+	clog.Info("获取权限白名单....")
+	db := databases.GetDbByName("platform_management", "mysql").Table("permissions_menu").
+		Where("is_auth_white_list = ?", 1).Where("req_url != '' or req_url is not null").Where("status = ?", 1).Where("menu_type = ? or menu_type = ?", 3, 4)
+	if config.Sysconfig.App.GlobalReqPathPrefix != "" && len(config.Sysconfig.App.GlobalReqPathPrefix) > 0 && config.Sysconfig.App.GlobalReqPathPrefix != "null" {
+		db = db.Where("req_url like ?", config.Sysconfig.App.GlobalReqPathPrefix+"%")
+	}
+	db.Select("req_url,method").Find(&authWhiteList)
+	for i := 0; i < len(authWhiteList); i++ {
+		authWhiteList[i].CheckType = 2
 	}
 	return authWhiteList
 }
