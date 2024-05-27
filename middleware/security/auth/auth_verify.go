@@ -10,7 +10,7 @@ import (
 	"github.com/lm1996-mojor/go-core-library/consul"
 	"github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
-	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
+	"github.com/lm1996-mojor/go-core-library/middleware/security/white_list"
 	"github.com/lm1996-mojor/go-core-library/proxy"
 	"github.com/lm1996-mojor/go-core-library/rest"
 	"github.com/lm1996-mojor/go-core-library/store"

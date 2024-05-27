@@ -9,7 +9,7 @@ import (
 	"github.com/kataras/iris/v12"
 	_const "github.com/lm1996-mojor/go-core-library/const"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
-	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
+	"github.com/lm1996-mojor/go-core-library/middleware/security/white_list"
 	"github.com/lm1996-mojor/go-core-library/store"
 	"github.com/lm1996-mojor/go-core-library/utils"
 )

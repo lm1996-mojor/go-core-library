@@ -12,7 +12,7 @@ import (
 	"github.com/lm1996-mojor/go-core-library/consul"
 	clog "github.com/lm1996-mojor/go-core-library/log"
 	"github.com/lm1996-mojor/go-core-library/middleware/http_session"
-	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
+	"github.com/lm1996-mojor/go-core-library/middleware/security/white_list"
 	"github.com/lm1996-mojor/go-core-library/proxy"
 	"github.com/lm1996-mojor/go-core-library/rest"
 	"github.com/lm1996-mojor/go-core-library/store"
@@ -114,8 +114,6 @@ func CheckIdentity(ctx iris.Context) {
 				return
 			}
 			clog.Info("临时token授权范围校验成功")
-			delTokenUrl = ""
-			reqMdl = proxy.RemoteReqMdl{}
 		}
 		// 以下所有数据都会在单次回话完成后进行清空
 		// 用于判断是否为超级管理员，主要用在鉴权时是否需要走权限系统

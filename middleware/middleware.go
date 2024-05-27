@@ -12,8 +12,8 @@ import (
 	cors "github.com/lm1996-mojor/go-core-library/middleware/cors_handler"
 	"github.com/lm1996-mojor/go-core-library/middleware/recoverer"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/auth"
-	"github.com/lm1996-mojor/go-core-library/middleware/security/auth/white_list"
 	"github.com/lm1996-mojor/go-core-library/middleware/security/token"
+	"github.com/lm1996-mojor/go-core-library/middleware/security/white_list"
 	"github.com/lm1996-mojor/go-core-library/middleware/session_data_handler"
 
 	"github.com/kataras/iris/v12/context"
@@ -27,6 +27,11 @@ func init() {
 
 // Init 中间件初始化
 func Init(app *iris.Application) {
+	app.Configure(iris.WithOptimizations)
+	// 配置会话id
+	app.UseGlobal(requestid.New(requestid.DefaultGenerator))
+	// 配置跨域处理
+	cors.InitCors(app)
 	// 初始化白名单
 	white_list.Init()
 	// 注册中间件
@@ -34,11 +39,6 @@ func Init(app *iris.Application) {
 }
 
 func RegisterMiddleWare(app *iris.Application) {
-	app.Configure(iris.WithOptimizations)
-	// 配置会话id
-	app.UseGlobal(requestid.New(requestid.DefaultGenerator))
-	// 配置跨域处理
-	cors.InitCors(app)
 	// 根据情况选定使用哪个中间件（token 和 会话数据初始化）
 	if !config.Sysconfig.Detection.Token {
 		tempSlice := make([]MiddleWare, 0)
