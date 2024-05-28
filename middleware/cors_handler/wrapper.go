@@ -12,9 +12,10 @@ func InitCors(app *iris.Application) {
 		ctx := app.ContextPool.Acquire(w, r)
 		ctx.Header("Access-Control-Allow-Origin", "*")
 		ctx.Header("Access-Control-Allow-Headers", "Overwrite, Destination, Content-Type, Depth, User-Agent, Translate, Range, Content-Range, Timeout, X-File-Size, X-Requested-With, If-Modified-Since, X-File-Name, Cache-Control, Location, Lock-Token, If, Authorization, watermark, angle")
-		ctx.Header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS")
+		ctx.Header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH")
 		ctx.Header("Access-Control-Expose-Headers", "Authorization, Content-Disposition")
 		ctx.Header("Access-Control-Max-Age", "3600")
+		ctx.Header("Content-Type", w.Header().Get("Content-Type"))
 		if r.Method == "OPTIONS" {
 			ctx.Header("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization")
 			ctx.StatusCode(204)
