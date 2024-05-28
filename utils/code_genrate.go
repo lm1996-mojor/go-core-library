@@ -24,6 +24,7 @@ type CodeGenerationRules struct {
 	OtherStrDigits     int    `gorm:"column:other_str_digits;type:int" json:"otherStrDigits,omitempty"`              // 其他字符串位数（-1 全部 其他自由输入）
 	OtherStrFormat     int8   `gorm:"column:other_str_format;type:tinyint" json:"otherStrFormat,omitempty"`          // 其他字符串格式（1 数字 2 英文 3 英文+数字）
 	OtherStrFormatCase int8   `gorm:"column:other_str_format_case;type:tinyint" json:"otherStrFormatCase,omitempty"` // 其他字符串格式大小写（1 全部大写 2 全部小写）
+	Status             int8   `gorm:"column:status;type:tinyint" json:"status,omitempty"`                            // 状态（1 启用 2 停用）
 }
 
 func (c *CodeGenerationRules) TableName() string {
@@ -174,16 +175,21 @@ func GenerateCodeBySearchId(codeType int) (code string) {
 	if codePrefix.OtherStrDigits < -1 {
 		codePrefix.OtherStrDigits = -1
 	}
-	switch codePrefix.OtherStrType {
-	case 1:
-		code += getRandomStr(codePrefix.OtherStrDigits, codePrefix.OtherStrFormat, codePrefix.OtherStrFormatCase)
-	case 2:
-		code += getUUIDStr(codePrefix.OtherStrDigits, codePrefix.OtherStrFormat, codePrefix.OtherStrFormatCase)
-	case 3:
-		code += getMd5Str(codePrefix.OtherStrDigits, codePrefix.OtherStrFormat, codePrefix.OtherStrFormatCase)
-	default:
+	if codePrefix.Status != 1 {
 		uuId, _ := uuid.GenerateUUID()
 		code += strings.ReplaceAll(uuId, "-", "")
+	} else {
+		switch codePrefix.OtherStrType {
+		case 1:
+			code += getRandomStr(codePrefix.OtherStrDigits, codePrefix.OtherStrFormat, codePrefix.OtherStrFormatCase)
+		case 2:
+			code += getUUIDStr(codePrefix.OtherStrDigits, codePrefix.OtherStrFormat, codePrefix.OtherStrFormatCase)
+		case 3:
+			code += getMd5Str(codePrefix.OtherStrDigits, codePrefix.OtherStrFormat, codePrefix.OtherStrFormatCase)
+		default:
+			uuId, _ := uuid.GenerateUUID()
+			code += strings.ReplaceAll(uuId, "-", "")
+		}
 	}
 	return code
 }
