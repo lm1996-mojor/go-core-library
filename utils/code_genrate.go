@@ -176,6 +176,7 @@ func GenerateCodeBySearchId(codeType int) (code string) {
 		codePrefix.OtherStrDigits = -1
 	}
 	if codePrefix.Status != 1 {
+		code += "CODE"
 		uuId, _ := uuid.GenerateUUID()
 		code += strings.ReplaceAll(uuId, "-", "")
 	} else {
