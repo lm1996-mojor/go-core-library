@@ -79,14 +79,14 @@ func CheckIdentity(ctx iris.Context) {
 		//判断自定义的token类型是否正确
 		tokenClaims := result.Data.(map[string]interface{})["parse_token"].(map[string]interface{})
 		if t, ok := tokenClaims["token_type"].(string); (ok && t != _const.TokenType && t != _const.TToken) || !ok { //不是access token也不是临时token
-			clog.Warn("令牌类型认证无效: " + err.Error())
+			clog.Warn("令牌类型认证无效: " + t)
 			clog.Warn("无效令牌：" + token)
 			ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
 			return
 		}
 		if t, ok := tokenClaims["token_single"].(string); (ok && t != _const.TokenSignature) || !ok {
 			//不是access token
-			clog.Warn("令牌签名认证无效: " + err.Error())
+			clog.Warn("令牌签名认证无效 " + t)
 			clog.Warn("无效令牌：" + token)
 			ctx.JSON(rest.FailCustom(401, "登录信息无效，请重新登录", rest.ERROR))
 			return

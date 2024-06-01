@@ -32,7 +32,7 @@ func (c *CodeGenerationRules) TableName() string {
 }
 
 func (c *CodeGenerationRules) allColumn() []string {
-	columns := []string{"prefix_str", "remark", "date_time_str", "other_str_type", "other_str_digits", "other_str_format", "other_str_format_case"}
+	columns := []string{"prefix_str", "remark", "date_time_str", "other_str_type", "other_str_digits", "other_str_format", "other_str_format_case", "status"}
 	commonMdl := req.CommonModel{}
 	columns = append(columns, commonMdl.GetCommonModelColumns()...)
 	return columns

@@ -141,7 +141,7 @@ func AppendSingleMiddleWares(item []MiddleWare) {
 
 // AppendGlobalMiddleWares 新增全局化中间件，先于其他中间件执行
 func AppendGlobalMiddleWares(item []MiddleWare) {
-	for _, ware := range singleMiddleWares {
+	for _, ware := range globalMiddleWares {
 		for _, customWare := range item {
 			if &ware.Handler == &customWare.Handler {
 				clog.Error("请勿重复注册中间件,重复项:[" + ware.HandlerCnDesc + "] 与 [" + customWare.HandlerCnDesc + "]")

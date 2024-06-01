@@ -47,9 +47,6 @@ func Init(app *iris.Application) {
 		if config.Sysconfig.DataBases.EnableDbDynamicManage {
 			go renewDb()
 		}
-		if config.Sysconfig.Consul.EnableObtainService {
-
-		}
 	} else {
 		if config.Sysconfig.DataBases.EnableDbDynamicManage {
 			panic("检测到系统中需要同步数据源，但没有相应的redis配置，请在项目根目录的yml文件中，添加redis配置")
