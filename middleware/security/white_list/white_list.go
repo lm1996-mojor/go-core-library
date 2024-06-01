@@ -140,9 +140,14 @@ func match(reqPath string, srcReqPathSlice map[string]string, method string, msg
 	// user/{id}
 	for srcReqPath, srcMethod := range srcReqPathSlice {
 		if strings.ToUpper(srcMethod) == strings.ToUpper(method) {
-			if strings.Contains(srcReqPath, "{") {
-				if strings.Count(srcReqPath[strings.Index(srcReqPath, "{")-1:], "/") == strings.Count(reqPath[strings.Index(srcReqPath, "{")-1:], "/") {
-					if srcReqPath[0:strings.Index(srcReqPath, "{")] == reqPath[0:len(srcReqPath[0:strings.Index(srcReqPath, "{")])] {
+			if strings.Contains(srcReqPath, reqPath) {
+				if strings.Contains(srcReqPath, "{") {
+					if strings.Count(srcReqPath[strings.Index(srcReqPath, "{")-1:], "/") == strings.Count(reqPath[strings.Index(srcReqPath, "{")-1:], "/") {
+						if srcReqPath[0:strings.Index(srcReqPath, "{")] == reqPath[0:len(srcReqPath[0:strings.Index(srcReqPath, "{")])] {
+							clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：在名单中")
+							return true
+						}
+					} else if srcReqPath == reqPath {
 						clog.Info(reqPath + "：" + msgStr + "白名单匹配结果：在名单中")
 						return true
 					}
