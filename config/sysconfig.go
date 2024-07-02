@@ -13,12 +13,16 @@ import (
 type sysconfig struct {
 	//服务信息结构体
 	App struct {
-		Name                string // 当前服务名称
-		Host                string // 当前服务的本地地址
-		Port                string // 当前服务的访问端口
-		TimeZone            string // 当前服务的时区
-		Language            string // 当前服务的语言
-		GlobalReqPathPrefix string // 当前服务的全局请求的地址前缀
+		Name                 string // 当前服务名称
+		ProjectMd5           string // 当前服务的项目md5值
+		OwnerProjectGroupMd5 string // 当前服务的所属项目组的md5值
+		Version              string // 当前服务的版本号
+		Description          string // 当前服务的描述信息
+		Host                 string // 当前服务的本地地址
+		Port                 string // 当前服务的访问端口
+		TimeZone             string // 当前服务的时区
+		Language             string // 当前服务的语言
+		GlobalReqPathPrefix  string // 当前服务的全局请求的地址前缀
 	}
 	Consul struct {
 		EnableServRegister  bool     // 是否开启服务注册

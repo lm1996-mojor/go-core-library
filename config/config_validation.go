@@ -4,11 +4,36 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/cast"
 )
 
 func validation() {
+	appValidation()
 	dbValidation()
 	consulConfigValidate()
+}
+
+func appValidation() {
+	log.Info().Msg("应用配置检查...")
+	if Sysconfig.App.Name == "" {
+		panic("应用名称不能为空，请检查yaml中的 name")
+	}
+	if len(Sysconfig.App.Port) <= 0 || Sysconfig.App.Port == "" || cast.ToInt(Sysconfig.App.Port) <= 0 {
+		panic("应用端口不能为空或者小于等于0，请检查yaml中的 port")
+	}
+	if len(Sysconfig.App.OwnerProjectGroupMd5) != 32 || len(Sysconfig.App.OwnerProjectGroupMd5) <= 0 {
+		panic("应用所属项目组的md5值必须为32位，请检查yaml中的 ownerProjectGroupMd5")
+	}
+	if len(Sysconfig.App.GlobalReqPathPrefix) <= 0 {
+		panic("全局请求路径前缀不能为空，请检查yaml中的 globalReqPathPrefix")
+	}
+	if len(Sysconfig.App.ProjectMd5) != 32 {
+		panic("项目的md5值必须为32位，请检查yaml中的 projectMd5")
+	}
+	if len(Sysconfig.App.Version) <= 0 {
+		panic("应用版本不能为空，请检查yaml中的 version")
+	}
+	log.Info().Msg("应用配置检查完成")
 }
 
 func dbValidation() {
