@@ -76,6 +76,9 @@ func Register() string {
 	}
 	meta["public_network"] = protocol + sys_environment.GetExternal() + ":" + libConfig.Sysconfig.App.Port
 	meta["protocol_host"] = protocol + host
+	meta["fingerprint"] = libConfig.Sysconfig.App.ProjectFingerprint
+	meta["group_fingerprint"] = libConfig.Sysconfig.App.OwnerProjectGroupFingerprint
+	meta["version"] = libConfig.Sysconfig.App.Version
 	uuId, _ := uuid.GenerateUUID()
 	registration := &api.AgentServiceRegistration{
 		Address: host,

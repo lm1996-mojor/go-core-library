@@ -21,14 +21,14 @@ func appValidation() {
 	if len(Sysconfig.App.Port) <= 0 || Sysconfig.App.Port == "" || cast.ToInt(Sysconfig.App.Port) <= 0 {
 		panic("应用端口不能为空或者小于等于0，请检查yaml中的 port")
 	}
-	if len(Sysconfig.App.OwnerProjectGroupMd5) != 32 || len(Sysconfig.App.OwnerProjectGroupMd5) <= 0 {
-		panic("应用所属项目组的md5值必须为32位，请检查yaml中的 ownerProjectGroupMd5")
+	if len(Sysconfig.App.OwnerProjectGroupFingerprint) != 32 {
+		panic("应用所属项目组的指纹值必须为32位，请检查yaml中的 ownerProjectGroupMd5")
 	}
 	if len(Sysconfig.App.GlobalReqPathPrefix) <= 0 {
 		panic("全局请求路径前缀不能为空，请检查yaml中的 globalReqPathPrefix")
 	}
-	if len(Sysconfig.App.ProjectMd5) != 32 {
-		panic("项目的md5值必须为32位，请检查yaml中的 projectMd5")
+	if len(Sysconfig.App.ProjectFingerprint) != 32 {
+		panic("项目的指纹必须为32位，请检查yaml中的 projectMd5")
 	}
 	if len(Sysconfig.App.Version) <= 0 {
 		panic("应用版本不能为空，请检查yaml中的 version")
