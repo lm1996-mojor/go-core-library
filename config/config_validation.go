@@ -24,9 +24,6 @@ func appValidation() {
 	if len(Sysconfig.App.OwnerProjectGroupFingerprint) != 32 {
 		panic("应用所属项目组的指纹值必须为32位，请检查yaml中的 ownerProjectGroupMd5")
 	}
-	if len(Sysconfig.App.GlobalReqPathPrefix) <= 0 {
-		panic("全局请求路径前缀不能为空，请检查yaml中的 globalReqPathPrefix")
-	}
 	if len(Sysconfig.App.ProjectFingerprint) != 32 {
 		panic("项目的指纹必须为32位，请检查yaml中的 projectMd5")
 	}
