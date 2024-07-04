@@ -85,7 +85,7 @@ func Register() string {
 		ID:      libConfig.Sysconfig.App.Name + "_" + strings.ReplaceAll(host, ".", "_") + "_" + libConfig.Sysconfig.App.Port + "_" + strings.Split(uuId, "-")[0],
 		Name:    libConfig.Sysconfig.App.Name,
 		Port:    cast.ToInt(libConfig.Sysconfig.App.Port),
-		Tags:    []string{libConfig.Sysconfig.App.Name},
+		Tags:    []string{libConfig.Sysconfig.App.Name, libConfig.Sysconfig.App.Version, libConfig.Sysconfig.App.Description},
 		Check:   serviceCheck,
 		Meta:    meta,
 	}
